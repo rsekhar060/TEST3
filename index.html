@@ -224,6 +224,35 @@ td{
   color:#94a3b8;
 }
 
+.action-buttons{
+  display:flex;
+  gap:8px;
+}
+
+.action-btn{
+  border:none;
+  padding:8px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:12px;
+  font-weight:600;
+}
+
+.approve-btn{
+  background:#2563eb;
+  color:white;
+}
+
+.flag-btn{
+  background:#facc15;
+  color:black;
+}
+
+.refresh-btn{
+  background:#1e293b;
+  color:white;
+}
+
 @media(max-width:1200px){
 
   .stats{
@@ -498,9 +527,36 @@ function showPO(po){
     r.PoNumber === po
   );
 
-  let approvedRows = "";
-  let cleanRows = "";
-  let reviewRows = "";
+  let html = `
+
+    <div class="table-card">
+
+      <div class="table-header">
+        ${po}
+      </div>
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>SKU_ID</th>
+            <th>FACILITY</th>
+            <th>PO TP</th>
+            <th>UC TP</th>
+            <th>DIFF</th>
+            <th>STATUS</th>
+            <th>REASON</th>
+            <th>ACTIONS</th>
+
+          </tr>
+
+        </thead>
+
+        <tbody>
+
+  `;
 
   rows.forEach(r => {
 
@@ -517,7 +573,7 @@ function showPO(po){
       Number(r.UC_PRICE)
     ).toFixed(2);
 
-    const tr = `
+    html += `
 
       <tr>
 
@@ -552,8 +608,40 @@ function showPO(po){
           ${status === 'CLEAN'
             ? 'TP matches exactly'
             : status === 'AUTO-APPROVED'
-            ? 'Diff < ₹1'
+            ? 'Diff < ₹2'
             : 'Large discrepancy'}
+
+        </td>
+
+        <td>
+
+          <div class="action-buttons">
+
+            <button
+              class="action-btn approve-btn"
+              onclick="approveSKU(this)">
+
+              Approve
+
+            </button>
+
+            <button
+              class="action-btn flag-btn"
+              onclick="flagSKU('${r.SKU_ID}')">
+
+              Flag
+
+            </button>
+
+            <button
+              class="action-btn refresh-btn"
+              onclick="refreshTP()">
+
+              TP Refresh
+
+            </button>
+
+          </div>
 
         </td>
 
@@ -561,55 +649,9 @@ function showPO(po){
 
     `;
 
-    if(status === "CLEAN"){
-      cleanRows += tr;
-    }
-
-    else if(
-      status === "AUTO-APPROVED"
-    ){
-      approvedRows += tr;
-    }
-
-    else{
-      reviewRows += tr;
-    }
-
   });
 
-  document.getElementById("content")
-  .innerHTML = `
-
-    <div
-      class="table-card">
-
-      <div class="table-header">
-        ${po}
-      </div>
-
-      <table>
-
-        <thead>
-
-          <tr>
-
-            <th>SKU_ID</th>
-            <th>FACILITY</th>
-            <th>PO TP</th>
-            <th>UC TP</th>
-            <th>DIFF</th>
-            <th>STATUS</th>
-            <th>REASON</th>
-
-          </tr>
-
-        </thead>
-
-        <tbody>
-
-          ${approvedRows}
-          ${cleanRows}
-          ${reviewRows}
+  html += `
 
         </tbody>
 
@@ -618,6 +660,33 @@ function showPO(po){
     </div>
 
   `;
+
+  document.getElementById("content")
+  .innerHTML = html;
+
+}
+
+function approveSKU(btn){
+
+  btn.innerText =
+  "Approved";
+
+  btn.style.background =
+  "#16a34a";
+
+}
+
+function flagSKU(sku){
+
+  alert(
+    "Flagged : " + sku
+  );
+
+}
+
+function refreshTP(){
+
+  location.reload();
 
 }
 
