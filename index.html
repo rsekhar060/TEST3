@@ -133,7 +133,7 @@ body{
 
 .stats{
   display:grid;
-  grid-template-columns:repeat(5,1fr);
+  grid-template-columns:repeat(6,1fr);
   gap:12px;
   margin-bottom:20px;
 }
@@ -422,6 +422,24 @@ td{
 
     </div>
 
+    <div
+      class="stat-card"
+      onclick="filterSidebar('REVIEW_SUCCESS')">
+
+      <div class="stat-title">
+        REVIEW SUCCESSFUL
+      </div>
+
+      <div
+        class="stat-value blue-text"
+        id="reviewSuccessCount">
+
+        0
+
+      </div>
+
+    </div>
+
   </div>
 
   <div id="content"></div>
@@ -584,11 +602,32 @@ function filterSidebar(type){
     let include = false;
 
     if(type === "ALL"){
+
       include = true;
+
     }
 
-    else if(type === status){
+    else if(type === "REVIEW_SUCCESS"){
+
+      if(
+        r.MANUAL_STATUS === "APPROVED" ||
+        r.MANUAL_STATUS === "FLAGGED" ||
+        r.MANUAL_STATUS === "REFRESH"
+      ){
+
+        include = true;
+
+      }
+
+    }
+
+    else if(
+      type === status &&
+      !r.MANUAL_STATUS
+    ){
+
       include = true;
+
     }
 
     if(include){
@@ -614,6 +653,7 @@ function updateStats(data){
   let clean = 0;
   let approved = 0;
   let review = 0;
+  let reviewSuccess = 0;
 
   data.forEach(r => {
 
@@ -625,16 +665,32 @@ function updateStats(data){
       r.UC_PRICE
     );
 
-    if(status === "CLEAN"){
+    if(
+      r.MANUAL_STATUS === "APPROVED" ||
+      r.MANUAL_STATUS === "FLAGGED" ||
+      r.MANUAL_STATUS === "REFRESH"
+    ){
+
+      reviewSuccess++;
+
+    }
+
+    else if(status === "CLEAN"){
+
       clean++;
+
     }
 
     else if(status === "AUTO-APPROVED"){
+
       approved++;
+
     }
 
     else{
+
       review++;
+
     }
 
   });
@@ -653,6 +709,9 @@ function updateStats(data){
 
   document.getElementById("reviewCount")
   .innerText = review;
+
+  document.getElementById("reviewSuccessCount")
+  .innerText = reviewSuccess;
 
 }
 
@@ -724,31 +783,19 @@ function showPO(po){
     poTP;
 
     if(r.MANUAL_STATUS === "APPROVED"){
-
-      finalStatus =
-      "APPROVED";
-
+      finalStatus = "APPROVED";
     }
 
     if(r.MANUAL_STATUS === "FLAGGED"){
-
-      finalStatus =
-      "FLAG PLATFORM";
-
+      finalStatus = "FLAG PLATFORM";
     }
 
     if(r.MANUAL_STATUS === "REFRESH"){
-
-      finalStatus =
-      "TP REFRESH";
-
-      refreshTP =
-      ucTP;
-
+      finalStatus = "TP REFRESH";
+      refreshTP = ucTP;
     }
 
-    let reason =
-    "";
+    let reason = "";
 
     const actualDiff =
     poTP - ucTP;
@@ -912,6 +959,8 @@ function updatePOTP(sku,newPrice){
 
   showPO(currentPO);
 
+  updateStats(FULL_DATA);
+
 }
 
 function approveSKU(sku){
@@ -928,6 +977,8 @@ function approveSKU(sku){
   });
 
   showPO(currentPO);
+
+  updateStats(FULL_DATA);
 
 }
 
@@ -946,6 +997,8 @@ function flagSKU(sku){
 
   showPO(currentPO);
 
+  updateStats(FULL_DATA);
+
 }
 
 function refreshSKU(sku){
@@ -962,6 +1015,8 @@ function refreshSKU(sku){
   });
 
   showPO(currentPO);
+
+  updateStats(FULL_DATA);
 
 }
 
@@ -1016,31 +1071,19 @@ function exportCSV(rows,fileName){
     poTP;
 
     if(r.MANUAL_STATUS === "APPROVED"){
-
-      finalStatus =
-      "APPROVED";
-
+      finalStatus = "APPROVED";
     }
 
     if(r.MANUAL_STATUS === "FLAGGED"){
-
-      finalStatus =
-      "FLAG PLATFORM";
-
+      finalStatus = "FLAG PLATFORM";
     }
 
     if(r.MANUAL_STATUS === "REFRESH"){
-
-      finalStatus =
-      "TP REFRESH";
-
-      refreshTP =
-      ucTP;
-
+      finalStatus = "TP REFRESH";
+      refreshTP = ucTP;
     }
 
-    let reason =
-    "";
+    let reason = "";
 
     const actualDiff =
     poTP - ucTP;
