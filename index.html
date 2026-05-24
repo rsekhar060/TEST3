@@ -59,6 +59,7 @@ body{
   padding:16px;
   margin-bottom:12px;
   transition:0.3s;
+  cursor:pointer;
 }
 
 .po-item:hover{
@@ -123,11 +124,6 @@ body{
   padding:12px 18px;
   border-radius:12px;
   cursor:pointer;
-  transition:0.3s;
-}
-
-.export-btn:hover{
-  background:#1f2937;
 }
 
 .stats{
@@ -167,111 +163,65 @@ body{
   color:#3b82f6;
 }
 
-.section-title{
-  font-size:24px;
-  margin-bottom:20px;
-}
-
-.card-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(350px,1fr));
-  gap:20px;
-}
-
-.tp-card{
+.table-card{
   background:#111827;
   border:1px solid #1f2937;
   border-radius:18px;
-  padding:22px;
+  overflow:hidden;
+  margin-bottom:30px;
 }
 
-.tp-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:15px;
-}
-
-.tp-title{
+.table-header{
+  padding:18px;
+  border-bottom:1px solid #1f2937;
   font-size:22px;
   font-weight:700;
 }
 
-.badge{
-  padding:6px 12px;
-  border-radius:10px;
-  font-size:12px;
-  font-weight:700;
+table{
+  width:100%;
+  border-collapse:collapse;
 }
 
-.badge-clean{
+th{
+  background:#0f172a;
+  color:#94a3b8;
+  text-align:left;
+  padding:14px;
+  font-size:12px;
+  letter-spacing:1px;
+}
+
+td{
+  padding:16px;
+  border-top:1px solid #1f2937;
+}
+
+.status{
+  padding:6px 12px;
+  border-radius:8px;
+  font-size:12px;
+  font-weight:700;
+  display:inline-block;
+}
+
+.clean{
   background:#052e16;
   color:#22c55e;
 }
 
-.badge-review{
-  background:#451a03;
-  color:#f59e0b;
-}
-
-.badge-approved{
+.approved{
   background:#172554;
   color:#3b82f6;
 }
 
-.product-name{
-  color:#cbd5e1;
-  margin-bottom:20px;
+.review{
+  background:#451a03;
+  color:#f59e0b;
 }
 
-.metrics{
-  display:flex;
-  gap:30px;
-  margin-bottom:20px;
-}
-
-.metric small{
-  display:block;
+.reason{
   color:#94a3b8;
-  margin-bottom:6px;
-}
-
-.metric-value{
-  font-size:28px;
-  font-weight:700;
-}
-
-.action-row{
-  display:flex;
-  gap:12px;
-}
-
-.btn{
-  border:none;
-  padding:12px 16px;
-  border-radius:12px;
-  cursor:pointer;
-  font-weight:600;
-  transition:0.3s;
-}
-
-.btn:hover{
-  opacity:0.9;
-}
-
-.btn-approve{
-  background:#3b82f6;
-  color:white;
-}
-
-.btn-flag{
-  background:#facc15;
-  color:black;
-}
-
-.btn-refresh{
-  background:#1e293b;
-  color:white;
 }
 
 @media(max-width:1200px){
@@ -326,8 +276,8 @@ body{
 
     <h1>Instamart TP Dashboard</h1>
 
-    <button class="export-btn" onclick="exportData()">
-      EXPORT CSV
+    <button class="export-btn" onclick="exportPO(currentPO)">
+      EXPORT PO
     </button>
 
   </div>
@@ -350,7 +300,7 @@ body{
     </div>
 
     <div class="stat-card">
-      <div class="stat-title">AUTO APPROVED</div>
+      <div class="stat-title">AUTO-APPROVED</div>
       <div class="stat-value blue-text" id="approvedCount">0</div>
     </div>
 
@@ -361,11 +311,7 @@ body{
 
   </div>
 
-  <div class="section-title">
-    PO Review Cards
-  </div>
-
-  <div class="card-grid" id="cardGrid"></div>
+  <div id="content"></div>
 
 </div>
 
@@ -374,194 +320,20 @@ body{
 const API_URL =
 "https://script.google.com/macros/s/AKfycbxYzvrWQ0g1AIuEgiLdlVXX3YD5i1bIDwVbmBRUbZaqABqdS08DuisAFUTkncq1MCEKyw/exec";
 
+let FULL_DATA = [];
+let currentPO = "";
+
 fetch(API_URL)
 
 .then(res => res.json())
 
 .then(data => {
 
-  let clean = 0;
-  let review = 0;
-  let approved = 0;
+  FULL_DATA = data;
 
-  const totalPOs = new Set();
+  buildSidebar(data);
 
-  let sidebarHTML = "";
-  let cardHTML = "";
-
-  data.forEach(item => {
-
-    totalPOs.add(item.PoNumber);
-
-    const poPrice =
-      Number(item.PO_PRICE || 0);
-
-    const ucPrice =
-      Number(item.UC_PRICE || 0);
-
-    const diff =
-      Math.abs(poPrice - ucPrice).toFixed(2);
-
-    let status = "CLEAN";
-    let badgeClass = "badge-clean";
-    let dotClass = "green";
-
-    if(diff > 0 && diff <= 2){
-
-      status = "APPROVED";
-      badgeClass = "badge-approved";
-      dotClass = "blue";
-
-      approved++;
-
-    }
-
-    else if(diff > 2){
-
-      status = "REVIEW";
-      badgeClass = "badge-review";
-      dotClass = "orange";
-
-      review++;
-
-    }
-
-    else{
-
-      clean++;
-
-    }
-
-    sidebarHTML += `
-
-      <div class="po-item">
-
-        <div class="po-top">
-
-          <div class="po-number">
-            ${item.PoNumber}
-          </div>
-
-          <div class="dot ${dotClass}"></div>
-
-        </div>
-
-        <div class="po-lines">
-          ${item.OrderedQty} lines
-        </div>
-
-      </div>
-
-    `;
-
-    cardHTML += `
-
-      <div class="tp-card">
-
-        <div class="tp-header">
-
-          <div class="tp-title">
-            ${item.SKU_ID}
-          </div>
-
-          <div class="badge ${badgeClass}">
-            ${status}
-          </div>
-
-        </div>
-
-        <div class="product-name">
-          Facility: ${item.FacilityName}
-        </div>
-
-        <div class="metrics">
-
-          <div class="metric">
-
-            <small>PO PRICE</small>
-
-            <div class="metric-value">
-              ₹${poPrice}
-            </div>
-
-          </div>
-
-          <div class="metric">
-
-            <small>UC PRICE</small>
-
-            <div class="metric-value">
-              ₹${ucPrice}
-            </div>
-
-          </div>
-
-          <div class="metric">
-
-            <small>DIFF</small>
-
-            <div class="metric-value">
-              ₹${diff}
-            </div>
-
-          </div>
-
-        </div>
-
-        <div class="action-row">
-
-          <button
-            class="btn btn-approve"
-            onclick="approvePO(this,'${item.PoNumber}')">
-
-            Approve
-
-          </button>
-
-          <button
-            class="btn btn-flag"
-            onclick="flagPO('${item.PoNumber}')">
-
-            Flag Platform
-
-          </button>
-
-          <button
-            class="btn btn-refresh"
-            onclick="refreshPO()">
-
-            TP Refresh
-
-          </button>
-
-        </div>
-
-      </div>
-
-    `;
-
-  });
-
-  document.getElementById("poList")
-    .innerHTML = sidebarHTML;
-
-  document.getElementById("cardGrid")
-    .innerHTML = cardHTML;
-
-  document.getElementById("totalPOs")
-    .innerText = totalPOs.size;
-
-  document.getElementById("totalLines")
-    .innerText = data.length;
-
-  document.getElementById("cleanCount")
-    .innerText = clean;
-
-  document.getElementById("approvedCount")
-    .innerText = approved;
-
-  document.getElementById("reviewCount")
-    .innerText = review;
+  updateStats(data);
 
 })
 
@@ -573,91 +345,325 @@ fetch(API_URL)
 
 });
 
-function approvePO(btn,po){
+function getStatus(po,uc){
 
-  btn.innerText = "Approved";
+  const diff =
+  Math.abs(Number(po)-Number(uc));
 
-  btn.style.background =
-  "#16a34a";
+  if(diff === 0){
+    return "CLEAN";
+  }
 
-  console.log(
-    "Approved:", po
-  );
+  if(diff <= 2){
+    return "AUTO-APPROVED";
+  }
 
-}
-
-function flagPO(po){
-
-  alert(
-    "Platform Flagged : " + po
-  );
+  return "REVIEW";
 
 }
 
-function refreshPO(){
+function buildSidebar(data){
 
-  location.reload();
+  const grouped = {};
 
-}
+  data.forEach(r => {
 
-function exportData(){
+    if(!grouped[r.PoNumber]){
+      grouped[r.PoNumber] = [];
+    }
 
-  fetch(API_URL)
-
-  .then(res => res.json())
-
-  .then(data => {
-
-    let csv =
-    "PoNumber,FacilityName,SKU_ID,PO_PRICE,UC_PRICE,STATUS\n";
-
-    data.forEach(r => {
-
-      const poPrice =
-      Number(r.PO_PRICE || 0);
-
-      const ucPrice =
-      Number(r.UC_PRICE || 0);
-
-      const diff =
-      Math.abs(poPrice - ucPrice);
-
-      let status = "CLEAN";
-
-      if(diff > 0 && diff <= 2){
-
-        status = "APPROVED";
-
-      }
-
-      else if(diff > 2){
-
-        status = "REVIEW";
-
-      }
-
-      csv +=
-      `${r.PoNumber},${r.FacilityName},${r.SKU_ID},${r.PO_PRICE},${r.UC_PRICE},${status}\n`;
-
-    });
-
-    const blob =
-    new Blob([csv], {
-      type:'text/csv'
-    });
-
-    const a =
-    document.createElement('a');
-
-    a.href =
-    URL.createObjectURL(blob);
-
-    a.download =
-    "TP_Dashboard.csv";
-
-    a.click();
+    grouped[r.PoNumber].push(r);
 
   });
+
+  let html = "";
+
+  Object.keys(grouped).forEach(po => {
+
+    const rows =
+    grouped[po];
+
+    let dotClass = "green";
+
+    rows.forEach(r => {
+
+      const status =
+      getStatus(
+        r.PO_PRICE,
+        r.UC_PRICE
+      );
+
+      if(status === "REVIEW"){
+        dotClass = "orange";
+      }
+
+      else if(
+        status === "AUTO-APPROVED"
+        &&
+        dotClass !== "orange"
+      ){
+        dotClass = "blue";
+      }
+
+    });
+
+    html += `
+
+      <div
+        class="po-item"
+        onclick="showPO('${po}')">
+
+        <div class="po-top">
+
+          <div class="po-number">
+            ${po}
+          </div>
+
+          <div class="dot ${dotClass}"></div>
+
+        </div>
+
+        <div class="po-lines">
+          ${rows.length} lines
+        </div>
+
+      </div>
+
+    `;
+
+  });
+
+  document.getElementById("poList")
+  .innerHTML = html;
+
+}
+
+function updateStats(data){
+
+  const pos = new Set();
+
+  let clean = 0;
+  let approved = 0;
+  let review = 0;
+
+  data.forEach(r => {
+
+    pos.add(r.PoNumber);
+
+    const status =
+    getStatus(
+      r.PO_PRICE,
+      r.UC_PRICE
+    );
+
+    if(status === "CLEAN"){
+      clean++;
+    }
+
+    else if(
+      status === "AUTO-APPROVED"
+    ){
+      approved++;
+    }
+
+    else{
+      review++;
+    }
+
+  });
+
+  document.getElementById("totalPOs")
+  .innerText = pos.size;
+
+  document.getElementById("totalLines")
+  .innerText = data.length;
+
+  document.getElementById("cleanCount")
+  .innerText = clean;
+
+  document.getElementById("approvedCount")
+  .innerText = approved;
+
+  document.getElementById("reviewCount")
+  .innerText = review;
+
+}
+
+function showPO(po){
+
+  currentPO = po;
+
+  const rows =
+  FULL_DATA.filter(r =>
+    r.PoNumber === po
+  );
+
+  let approvedRows = "";
+  let cleanRows = "";
+  let reviewRows = "";
+
+  rows.forEach(r => {
+
+    const status =
+    getStatus(
+      r.PO_PRICE,
+      r.UC_PRICE
+    );
+
+    const diff =
+    Math.abs(
+      Number(r.PO_PRICE)
+      -
+      Number(r.UC_PRICE)
+    ).toFixed(2);
+
+    const tr = `
+
+      <tr>
+
+        <td>${r.SKU_ID}</td>
+
+        <td>${r.FacilityName}</td>
+
+        <td>₹${r.PO_PRICE}</td>
+
+        <td>₹${r.UC_PRICE}</td>
+
+        <td>₹${diff}</td>
+
+        <td>
+
+          <span class="
+          status
+          ${status === 'CLEAN'
+            ? 'clean'
+            : status === 'AUTO-APPROVED'
+            ? 'approved'
+            : 'review'}">
+
+            ${status}
+
+          </span>
+
+        </td>
+
+        <td class="reason">
+
+          ${status === 'CLEAN'
+            ? 'TP matches exactly'
+            : status === 'AUTO-APPROVED'
+            ? 'Diff < ₹1'
+            : 'Large discrepancy'}
+
+        </td>
+
+      </tr>
+
+    `;
+
+    if(status === "CLEAN"){
+      cleanRows += tr;
+    }
+
+    else if(
+      status === "AUTO-APPROVED"
+    ){
+      approvedRows += tr;
+    }
+
+    else{
+      reviewRows += tr;
+    }
+
+  });
+
+  document.getElementById("content")
+  .innerHTML = `
+
+    <div
+      class="table-card">
+
+      <div class="table-header">
+        ${po}
+      </div>
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>SKU_ID</th>
+            <th>FACILITY</th>
+            <th>PO TP</th>
+            <th>UC TP</th>
+            <th>DIFF</th>
+            <th>STATUS</th>
+            <th>REASON</th>
+
+          </tr>
+
+        </thead>
+
+        <tbody>
+
+          ${approvedRows}
+          ${cleanRows}
+          ${reviewRows}
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  `;
+
+}
+
+function exportPO(po){
+
+  if(!po){
+    alert("Select PO First");
+    return;
+  }
+
+  const rows =
+  FULL_DATA.filter(r =>
+    r.PoNumber === po
+  );
+
+  let csv =
+  "PoNumber,SKU_ID,FacilityName,PO_PRICE,UC_PRICE,STATUS\n";
+
+  rows.forEach(r => {
+
+    const status =
+    getStatus(
+      r.PO_PRICE,
+      r.UC_PRICE
+    );
+
+    csv +=
+    `${r.PoNumber},${r.SKU_ID},${r.FacilityName},${r.PO_PRICE},${r.UC_PRICE},${status}\n`;
+
+  });
+
+  const blob =
+  new Blob([csv], {
+    type:'text/csv'
+  });
+
+  const a =
+  document.createElement('a');
+
+  a.href =
+  URL.createObjectURL(blob);
+
+  a.download =
+  `${po}.csv`;
+
+  a.click();
 
 }
 
