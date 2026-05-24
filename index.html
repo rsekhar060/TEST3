@@ -23,12 +23,12 @@ body{
   background:#070b14;
   color:white;
   display:flex;
-  height:92vh;
+  height:100vh;
   overflow:hidden;
 }
 
 .sidebar{
-  width:180px;
+  width:220px;
   background:#0d111c;
   border-right:1px solid #1e2535;
   overflow-y:auto;
@@ -44,7 +44,7 @@ body{
 .sidebar-title{
   padding:10px;
   color:#94a3b8;
-  font-size:7px;
+  font-size:8px;
   letter-spacing:2px;
 }
 
@@ -78,8 +78,8 @@ body{
 }
 
 .dot{
-  width:7px;
-  height:7px;
+  width:8px;
+  height:8px;
   border-radius:50%;
 }
 
@@ -114,7 +114,7 @@ body{
 }
 
 .header h1{
-  font-size:12px;
+  font-size:14px;
 }
 
 .export-wrap{
@@ -143,6 +143,12 @@ body{
   border:1px solid #1f2937;
   border-radius:15px;
   padding:20px;
+  cursor:pointer;
+  transition:0.3s;
+}
+
+.stat-card:hover{
+  border-color:#3b82f6;
 }
 
 .stat-title{
@@ -177,10 +183,10 @@ body{
 }
 
 .table-header{
-  padding:12px;
+  padding:14px;
   border-bottom:1px solid #1f2937;
-  font-size:15px;
-  font-weight:600;
+  font-size:18px;
+  font-weight:700;
 }
 
 table{
@@ -277,6 +283,7 @@ td{
   padding:8px;
   border-radius:8px;
 }
+
 </style>
 
 </head>
@@ -327,29 +334,92 @@ td{
 
   <div class="stats">
 
-    <div class="stat-card">
-      <div class="stat-title">TOTAL POs</div>
-      <div class="stat-value" id="totalPOs">0</div>
+    <div
+      class="stat-card"
+      onclick="filterSidebar('ALL')">
+
+      <div class="stat-title">
+        TOTAL POs
+      </div>
+
+      <div
+        class="stat-value"
+        id="totalPOs">
+
+        0
+
+      </div>
+
     </div>
 
     <div class="stat-card">
-      <div class="stat-title">PO LINES</div>
-      <div class="stat-value" id="totalLines">0</div>
+
+      <div class="stat-title">
+        PO LINES
+      </div>
+
+      <div
+        class="stat-value"
+        id="totalLines">
+
+        0
+
+      </div>
+
     </div>
 
-    <div class="stat-card">
-      <div class="stat-title">CLEAN</div>
-      <div class="stat-value green-text" id="cleanCount">0</div>
+    <div
+      class="stat-card"
+      onclick="filterSidebar('CLEAN')">
+
+      <div class="stat-title">
+        CLEAN
+      </div>
+
+      <div
+        class="stat-value green-text"
+        id="cleanCount">
+
+        0
+
+      </div>
+
     </div>
 
-    <div class="stat-card">
-      <div class="stat-title">AUTO-APPROVED</div>
-      <div class="stat-value blue-text" id="approvedCount">0</div>
+    <div
+      class="stat-card"
+      onclick="filterSidebar('AUTO-APPROVED')">
+
+      <div class="stat-title">
+        AUTO-APPROVED
+      </div>
+
+      <div
+        class="stat-value blue-text"
+        id="approvedCount">
+
+        0
+
+      </div>
+
     </div>
 
-    <div class="stat-card">
-      <div class="stat-title">NEEDS REVIEW</div>
-      <div class="stat-value orange-text" id="reviewCount">0</div>
+    <div
+      class="stat-card"
+      onclick="filterSidebar('REVIEW')">
+
+      <div class="stat-title">
+        NEEDS REVIEW
+      </div>
+
+      <div
+        class="stat-value orange-text"
+        id="reviewCount">
+
+        0
+
+      </div>
+
     </div>
 
   </div>
@@ -419,6 +489,12 @@ function buildSidebar(data){
 
   });
 
+  renderSidebar(grouped);
+
+}
+
+function renderSidebar(grouped){
+
   let html = "";
 
   Object.keys(grouped).forEach(po => {
@@ -477,6 +553,44 @@ function buildSidebar(data){
 
   document.getElementById("poList")
   .innerHTML = html;
+
+}
+
+function filterSidebar(type){
+
+  const grouped = {};
+
+  FULL_DATA.forEach(r => {
+
+    const status =
+    getStatus(
+      r.PO_PRICE,
+      r.UC_PRICE
+    );
+
+    let include = false;
+
+    if(type === "ALL"){
+      include = true;
+    }
+
+    else if(type === status){
+      include = true;
+    }
+
+    if(include){
+
+      if(!grouped[r.PoNumber]){
+        grouped[r.PoNumber] = [];
+      }
+
+      grouped[r.PoNumber].push(r);
+
+    }
+
+  });
+
+  renderSidebar(grouped);
 
 }
 
@@ -590,49 +704,6 @@ function showPO(po){
       poTP - ucTP
     ).toFixed(2);
 
-    let finalStatus =
-    status;
-
-    let refreshTP =
-    poTP;
-
-    if(r.MANUAL_STATUS === "APPROVED"){
-
-      finalStatus =
-      "APPROVED";
-
-      refreshTP =
-      poTP;
-
-    }
-
-    if(r.MANUAL_STATUS === "FLAGGED"){
-
-      finalStatus =
-      "FLAG PLATFORM";
-
-      refreshTP =
-      poTP;
-
-    }
-
-    if(r.MANUAL_STATUS === "REFRESH"){
-
-      finalStatus =
-      "TP REFRESH";
-
-      refreshTP =
-      ucTP;
-
-    }
-
-    if(status === "AUTO-APPROVED"){
-
-      refreshTP =
-      poTP;
-
-    }
-
     let reason =
     "";
 
@@ -640,33 +711,19 @@ function showPO(po){
     poTP - ucTP;
 
     if(actualDiff === 0){
-
-      reason =
-      "TP matches exactly";
-
+      reason = "TP matches exactly";
     }
 
-    else if(
-      Math.abs(actualDiff) <= 1
-    ){
-
-      reason =
-      "Diff within ₹1";
-
+    else if(Math.abs(actualDiff) <= 1){
+      reason = "Diff within ₹1";
     }
 
     else if(actualDiff > 1){
-
-      reason =
-      "High in PO";
-
+      reason = "High in PO";
     }
 
-    else if(actualDiff < -1){
-
-      reason =
-      "High in UC";
-
+    else{
+      reason = "High in UC";
     }
 
     html += `
@@ -682,14 +739,7 @@ function showPO(po){
           <input
             type="number"
             class="po-input"
-            value="${poTP}"
-            step="0.01"
-            onchange="
-              updatePOTP(
-                '${r.SKU_ID}',
-                this.value
-              )
-            ">
+            value="${poTP}">
 
         </td>
 
@@ -717,22 +767,20 @@ function showPO(po){
 
           <span class="
           status
-          ${finalStatus === 'APPROVED'
+          ${status === 'CLEAN'
+            ? 'clean'
+            : status === 'AUTO-APPROVED'
             ? 'approved'
-            : finalStatus === 'FLAG PLATFORM'
-            ? 'flagged'
-            : finalStatus === 'TP REFRESH'
-            ? 'refresh'
-            : 'approved'}">
+            : 'review'}">
 
-            ${finalStatus}
+            ${status}
 
           </span>
 
         </td>
 
         <td>
-          ₹${refreshTP}
+          ₹${poTP}
         </td>
 
         <td class="reason">
@@ -743,28 +791,16 @@ function showPO(po){
 
           <div class="action-buttons">
 
-            <button
-              class="action-btn approve-btn"
-              onclick="approveSKU('${r.SKU_ID}')">
-
+            <button class="action-btn approve-btn">
               Approve
-
             </button>
 
-            <button
-              class="action-btn flag-btn"
-              onclick="flagSKU('${r.SKU_ID}')">
-
+            <button class="action-btn flag-btn">
               Flag Platform
-
             </button>
 
-            <button
-              class="action-btn refresh-btn"
-              onclick="refreshSKU('${r.SKU_ID}')">
-
+            <button class="action-btn refresh-btn">
               TP Refresh
-
             </button>
 
           </div>
@@ -789,223 +825,6 @@ function showPO(po){
 
   document.getElementById("content")
   .innerHTML = html;
-
-}
-
-function updatePOTP(sku,newPrice){
-
-  FULL_DATA.forEach(r => {
-
-    if(r.SKU_ID === sku){
-
-      r.PO_PRICE =
-      Number(newPrice);
-
-      r.MANUAL_STATUS =
-      "FLAGGED";
-
-    }
-
-  });
-
-  showPO(currentPO);
-
-}
-
-function approveSKU(sku){
-
-  FULL_DATA.forEach(r => {
-
-    if(r.SKU_ID === sku){
-
-      r.MANUAL_STATUS =
-      "APPROVED";
-
-    }
-
-  });
-
-  showPO(currentPO);
-
-}
-
-function flagSKU(sku){
-
-  FULL_DATA.forEach(r => {
-
-    if(r.SKU_ID === sku){
-
-      r.MANUAL_STATUS =
-      "FLAGGED";
-
-    }
-
-  });
-
-  showPO(currentPO);
-
-}
-
-function refreshSKU(sku){
-
-  FULL_DATA.forEach(r => {
-
-    if(r.SKU_ID === sku){
-
-      r.MANUAL_STATUS =
-      "REFRESH";
-
-    }
-
-  });
-
-  showPO(currentPO);
-
-}
-
-function exportPO(po){
-
-  if(!po){
-    alert("Select PO First");
-    return;
-  }
-
-  const rows =
-  FULL_DATA.filter(r =>
-    r.PoNumber === po
-  );
-
-  exportCSV(rows, `${po}.csv`);
-
-}
-
-function exportAllPOs(){
-
-  exportCSV(
-    FULL_DATA,
-    "ALL_POS.csv"
-  );
-
-}
-
-function exportCSV(rows,fileName){
-
-  let csv =
-  "PoNumber,SKU_ID,SKU_Name,PO_PRICE,UC_PRICE,REFRESH_TP,STATUS,FINAL_STATUS,REASON\n";
-
-  rows.forEach(r => {
-
-    const poTP =
-    Number(r.PO_PRICE);
-
-    const ucTP =
-    Number(r.UC_PRICE);
-
-    const status =
-    getStatus(
-      poTP,
-      ucTP
-    );
-
-    let finalStatus =
-    status;
-
-    let refreshTP =
-    poTP;
-
-    if(r.MANUAL_STATUS === "APPROVED"){
-
-      finalStatus =
-      "APPROVED";
-
-      refreshTP =
-      poTP;
-
-    }
-
-    if(r.MANUAL_STATUS === "FLAGGED"){
-
-      finalStatus =
-      "FLAG PLATFORM";
-
-      refreshTP =
-      poTP;
-
-    }
-
-    if(r.MANUAL_STATUS === "REFRESH"){
-
-      finalStatus =
-      "TP REFRESH";
-
-      refreshTP =
-      ucTP;
-
-    }
-
-    if(status === "AUTO-APPROVED"){
-
-      refreshTP =
-      poTP;
-
-    }
-
-    let reason =
-    "";
-
-    const actualDiff =
-    poTP - ucTP;
-
-    if(actualDiff === 0){
-
-      reason =
-      "TP matches exactly";
-
-    }
-
-    else if(
-      Math.abs(actualDiff) <= 1
-    ){
-
-      reason =
-      "Diff within ₹1";
-
-    }
-
-    else if(actualDiff > 1){
-
-      reason =
-      "High in PO";
-
-    }
-
-    else if(actualDiff < -1){
-
-      reason =
-      "High in UC";
-
-    }
-
-    csv +=
-    `${r.PoNumber},${r.SKU_ID},${r.SKU_Name || ""},${poTP},${ucTP},${refreshTP},${status},${finalStatus},${reason}\n`;
-
-  });
-
-  const blob =
-  new Blob([csv], {
-    type:'text/csv'
-  });
-
-  const a =
-  document.createElement('a');
-
-  a.href =
-  URL.createObjectURL(blob);
-
-  a.download =
-  fileName;
-
-  a.click();
 
 }
 
