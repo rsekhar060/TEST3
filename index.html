@@ -587,60 +587,6 @@ function renderSidebar(grouped){
 
 }
 
-function filterSidebar(type){
-
-  const grouped = {};
-
-  FULL_DATA.forEach(r => {
-
-    const status =
-    getStatus(
-      r.PO_PRICE,
-      r.UC_PRICE
-    );
-
-    const reviewed =
-      r.MANUAL_STATUS === "APPROVED" ||
-      r.MANUAL_STATUS === "FLAGGED" ||
-      r.MANUAL_STATUS === "REFRESH";
-
-    let include = false;
-
-    if(type === "ALL"){
-      include = true;
-    }
-
-    else if(
-      type === "REVIEW_SUCCESS" &&
-      status === "REVIEW" &&
-      reviewed
-    ){
-      include = true;
-    }
-
-    else if(
-      type === status &&
-      !reviewed
-    ){
-      include = true;
-    }
-
-    if(include){
-
-      if(!grouped[r.PoNumber]){
-        grouped[r.PoNumber] = [];
-      }
-
-      grouped[r.PoNumber].push(r);
-
-    }
-
-  });
-
-  renderSidebar(grouped);
-
-}
-
 function updateStats(data){
 
   const pos = new Set();
@@ -660,35 +606,27 @@ function updateStats(data){
       r.UC_PRICE
     );
 
-    const reviewed =
-      r.MANUAL_STATUS === "APPROVED" ||
-      r.MANUAL_STATUS === "FLAGGED" ||
-      r.MANUAL_STATUS === "REFRESH";
-
-    if(
-      status === "REVIEW" &&
-      reviewed
-    ){
-
-      reviewSuccess++;
-
-    }
-
-    else if(status === "CLEAN"){
-
+    if(status === "CLEAN"){
       clean++;
-
     }
 
     else if(status === "AUTO-APPROVED"){
-
       approved++;
-
     }
 
     else if(status === "REVIEW"){
 
-      review++;
+      if(
+        r.MANUAL_STATUS === "APPROVED" ||
+        r.MANUAL_STATUS === "FLAGGED" ||
+        r.MANUAL_STATUS === "REFRESH"
+      ){
+        reviewSuccess++;
+      }
+
+      else{
+        review++;
+      }
 
     }
 
