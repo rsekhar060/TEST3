@@ -23,7 +23,7 @@ body{
   background:#070b14;
   color:white;
   display:flex;
-  min-height:100vh;
+  height:100vh;
   overflow:hidden;
 }
 
@@ -111,7 +111,6 @@ body{
   justify-content:space-between;
   align-items:center;
   margin-bottom:25px;
-  gap:15px;
 }
 
 .header h1{
@@ -121,7 +120,6 @@ body{
 .export-wrap{
   display:flex;
   gap:10px;
-  flex-wrap:wrap;
 }
 
 .export-btn{
@@ -131,16 +129,11 @@ body{
   padding:12px 18px;
   border-radius:12px;
   cursor:pointer;
-  transition:0.3s;
-}
-
-.export-btn:hover{
-  background:#1e293b;
 }
 
 .stats{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  grid-template-columns:repeat(5,1fr);
   gap:18px;
   margin-bottom:30px;
 }
@@ -179,7 +172,7 @@ body{
   background:#111827;
   border:1px solid #1f2937;
   border-radius:18px;
-  overflow:auto;
+  overflow:hidden;
   margin-bottom:30px;
 }
 
@@ -192,7 +185,6 @@ body{
 
 table{
   width:100%;
-  min-width:1400px;
   border-collapse:collapse;
 }
 
@@ -203,8 +195,6 @@ th{
   padding:14px;
   font-size:12px;
   letter-spacing:1px;
-  position:sticky;
-  top:0;
 }
 
 td{
@@ -253,7 +243,6 @@ td{
 .action-buttons{
   display:flex;
   gap:8px;
-  flex-wrap:wrap;
 }
 
 .action-btn{
@@ -263,11 +252,6 @@ td{
   cursor:pointer;
   font-size:12px;
   font-weight:600;
-  transition:0.3s;
-}
-
-.action-btn:hover{
-  opacity:0.9;
 }
 
 .approve-btn{
@@ -292,64 +276,6 @@ td{
   color:white;
   padding:8px;
   border-radius:8px;
-}
-
-@media(max-width:1200px){
-
-  .stats{
-    grid-template-columns:repeat(2,1fr);
-  }
-
-}
-
-@media(max-width:900px){
-
-  body{
-    flex-direction:column;
-    overflow:auto;
-  }
-
-  .sidebar{
-    width:100%;
-    height:auto;
-    border-right:none;
-    border-bottom:1px solid #1e2535;
-  }
-
-  .main{
-    width:100%;
-    padding:15px;
-  }
-
-  .header{
-    flex-direction:column;
-    align-items:flex-start;
-  }
-
-  .header h1{
-    font-size:28px;
-  }
-
-  .stats{
-    grid-template-columns:1fr;
-  }
-
-  .table-card{
-    overflow:auto;
-  }
-
-  table{
-    min-width:1400px;
-  }
-
-  .export-wrap{
-    width:100%;
-  }
-
-  .export-btn{
-    width:100%;
-  }
-
 }
 
 </style>
@@ -601,6 +527,486 @@ function updateStats(data){
 
   document.getElementById("reviewCount")
   .innerText = review;
+
+}
+
+function showPO(po){
+
+  currentPO = po;
+
+  const rows =
+  FULL_DATA.filter(r =>
+    r.PoNumber === po
+  );
+
+  let html = `
+
+    <div class="table-card">
+
+      <div class="table-header">
+        ${po}
+      </div>
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>SKU_ID</th>
+            <th>SKU NAME</th>
+            <th>PO TP</th>
+            <th>UC TP</th>
+            <th>DIFF</th>
+            <th>STATUS</th>
+            <th>FINAL STATUS</th>
+            <th>REFRESH TP</th>
+            <th>REASON</th>
+            <th>ACTIONS</th>
+
+          </tr>
+
+        </thead>
+
+        <tbody>
+
+  `;
+
+  rows.forEach(r => {
+
+    const poTP =
+    Number(r.PO_PRICE);
+
+    const ucTP =
+    Number(r.UC_PRICE);
+
+    const status =
+    getStatus(
+      poTP,
+      ucTP
+    );
+
+    const diff =
+    Math.abs(
+      poTP - ucTP
+    ).toFixed(2);
+
+    let finalStatus =
+    status;
+
+    let refreshTP =
+    poTP;
+
+    if(r.MANUAL_STATUS === "APPROVED"){
+
+      finalStatus =
+      "APPROVED";
+
+      refreshTP =
+      poTP;
+
+    }
+
+    if(r.MANUAL_STATUS === "FLAGGED"){
+
+      finalStatus =
+      "FLAG PLATFORM";
+
+      refreshTP =
+      poTP;
+
+    }
+
+    if(r.MANUAL_STATUS === "REFRESH"){
+
+      finalStatus =
+      "TP REFRESH";
+
+      refreshTP =
+      ucTP;
+
+    }
+
+    if(status === "AUTO-APPROVED"){
+
+      refreshTP =
+      poTP;
+
+    }
+
+    let reason =
+    "";
+
+    const actualDiff =
+    poTP - ucTP;
+
+    if(actualDiff === 0){
+
+      reason =
+      "TP matches exactly";
+
+    }
+
+    else if(
+      Math.abs(actualDiff) <= 1
+    ){
+
+      reason =
+      "Diff within ₹1";
+
+    }
+
+    else if(actualDiff > 1){
+
+      reason =
+      "High in PO";
+
+    }
+
+    else if(actualDiff < -1){
+
+      reason =
+      "High in UC";
+
+    }
+
+    html += `
+
+      <tr>
+
+        <td>${r.SKU_ID}</td>
+
+        <td>${r.SKU_Name || ""}</td>
+
+        <td>
+
+          <input
+            type="number"
+            class="po-input"
+            value="${poTP}"
+            step="0.01"
+            onchange="
+              updatePOTP(
+                '${r.SKU_ID}',
+                this.value
+              )
+            ">
+
+        </td>
+
+        <td>₹${ucTP}</td>
+
+        <td>₹${diff}</td>
+
+        <td>
+
+          <span class="
+          status
+          ${status === 'CLEAN'
+            ? 'clean'
+            : status === 'AUTO-APPROVED'
+            ? 'approved'
+            : 'review'}">
+
+            ${status}
+
+          </span>
+
+        </td>
+
+        <td>
+
+          <span class="
+          status
+          ${finalStatus === 'APPROVED'
+            ? 'approved'
+            : finalStatus === 'FLAG PLATFORM'
+            ? 'flagged'
+            : finalStatus === 'TP REFRESH'
+            ? 'refresh'
+            : 'approved'}">
+
+            ${finalStatus}
+
+          </span>
+
+        </td>
+
+        <td>
+          ₹${refreshTP}
+        </td>
+
+        <td class="reason">
+          ${reason}
+        </td>
+
+        <td>
+
+          <div class="action-buttons">
+
+            <button
+              class="action-btn approve-btn"
+              onclick="approveSKU('${r.SKU_ID}')">
+
+              Approve
+
+            </button>
+
+            <button
+              class="action-btn flag-btn"
+              onclick="flagSKU('${r.SKU_ID}')">
+
+              Flag Platform
+
+            </button>
+
+            <button
+              class="action-btn refresh-btn"
+              onclick="refreshSKU('${r.SKU_ID}')">
+
+              TP Refresh
+
+            </button>
+
+          </div>
+
+        </td>
+
+      </tr>
+
+    `;
+
+  });
+
+  html += `
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  `;
+
+  document.getElementById("content")
+  .innerHTML = html;
+
+}
+
+function updatePOTP(sku,newPrice){
+
+  FULL_DATA.forEach(r => {
+
+    if(r.SKU_ID === sku){
+
+      r.PO_PRICE =
+      Number(newPrice);
+
+      r.MANUAL_STATUS =
+      "FLAGGED";
+
+    }
+
+  });
+
+  showPO(currentPO);
+
+}
+
+function approveSKU(sku){
+
+  FULL_DATA.forEach(r => {
+
+    if(r.SKU_ID === sku){
+
+      r.MANUAL_STATUS =
+      "APPROVED";
+
+    }
+
+  });
+
+  showPO(currentPO);
+
+}
+
+function flagSKU(sku){
+
+  FULL_DATA.forEach(r => {
+
+    if(r.SKU_ID === sku){
+
+      r.MANUAL_STATUS =
+      "FLAGGED";
+
+    }
+
+  });
+
+  showPO(currentPO);
+
+}
+
+function refreshSKU(sku){
+
+  FULL_DATA.forEach(r => {
+
+    if(r.SKU_ID === sku){
+
+      r.MANUAL_STATUS =
+      "REFRESH";
+
+    }
+
+  });
+
+  showPO(currentPO);
+
+}
+
+function exportPO(po){
+
+  if(!po){
+    alert("Select PO First");
+    return;
+  }
+
+  const rows =
+  FULL_DATA.filter(r =>
+    r.PoNumber === po
+  );
+
+  exportCSV(rows, `${po}.csv`);
+
+}
+
+function exportAllPOs(){
+
+  exportCSV(
+    FULL_DATA,
+    "ALL_POS.csv"
+  );
+
+}
+
+function exportCSV(rows,fileName){
+
+  let csv =
+  "PoNumber,SKU_ID,SKU_Name,PO_PRICE,UC_PRICE,REFRESH_TP,STATUS,FINAL_STATUS,REASON\n";
+
+  rows.forEach(r => {
+
+    const poTP =
+    Number(r.PO_PRICE);
+
+    const ucTP =
+    Number(r.UC_PRICE);
+
+    const status =
+    getStatus(
+      poTP,
+      ucTP
+    );
+
+    let finalStatus =
+    status;
+
+    let refreshTP =
+    poTP;
+
+    if(r.MANUAL_STATUS === "APPROVED"){
+
+      finalStatus =
+      "APPROVED";
+
+      refreshTP =
+      poTP;
+
+    }
+
+    if(r.MANUAL_STATUS === "FLAGGED"){
+
+      finalStatus =
+      "FLAG PLATFORM";
+
+      refreshTP =
+      poTP;
+
+    }
+
+    if(r.MANUAL_STATUS === "REFRESH"){
+
+      finalStatus =
+      "TP REFRESH";
+
+      refreshTP =
+      ucTP;
+
+    }
+
+    if(status === "AUTO-APPROVED"){
+
+      refreshTP =
+      poTP;
+
+    }
+
+    let reason =
+    "";
+
+    const actualDiff =
+    poTP - ucTP;
+
+    if(actualDiff === 0){
+
+      reason =
+      "TP matches exactly";
+
+    }
+
+    else if(
+      Math.abs(actualDiff) <= 1
+    ){
+
+      reason =
+      "Diff within ₹1";
+
+    }
+
+    else if(actualDiff > 1){
+
+      reason =
+      "High in PO";
+
+    }
+
+    else if(actualDiff < -1){
+
+      reason =
+      "High in UC";
+
+    }
+
+    csv +=
+    `${r.PoNumber},${r.SKU_ID},${r.SKU_Name || ""},${poTP},${ucTP},${refreshTP},${status},${finalStatus},${reason}\n`;
+
+  });
+
+  const blob =
+  new Blob([csv], {
+    type:'text/csv'
+  });
+
+  const a =
+  document.createElement('a');
+
+  a.href =
+  URL.createObjectURL(blob);
+
+  a.download =
+  fileName;
+
+  a.click();
 
 }
 
