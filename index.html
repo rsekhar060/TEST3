@@ -735,9 +735,6 @@ function showPO(po){
       finalStatus =
       "FLAG PLATFORM";
 
-      refreshTP =
-      poTP;
-
     }
 
     if(r.MANUAL_STATUS === "REFRESH"){
@@ -996,7 +993,7 @@ function exportAllPOs(){
 function exportCSV(rows,fileName){
 
   let csv =
-  "PoNumber,SKU_ID,SKU_Name,PO_PRICE,UC_PRICE,REFRESH_TP,STATUS,FINAL_STATUS,REASON\n";
+  `"PoNumber","SKU_ID","SKU_Name","PO_PRICE","UC_PRICE","REFRESH_TP","STATUS","FINAL_STATUS","REASON"\n`;
 
   rows.forEach(r => {
 
@@ -1065,13 +1062,13 @@ function exportCSV(rows,fileName){
     }
 
     csv +=
-`${r.PoNumber},${r.SKU_ID},${getSKUName(r)},${poTP},${ucTP},${refreshTP},${status},${finalStatus},${reason}\n`;
+`"${String(r.PoNumber || "").replace(/"/g,'""')}","${String(r.SKU_ID || "").replace(/"/g,'""')}","${String(getSKUName(r) || "").replace(/"/g,'""')}","${poTP}","${ucTP}","${refreshTP}","${status}","${finalStatus}","${String(reason || "").replace(/"/g,'""')}"\n`;
 
   });
 
   const blob =
   new Blob([csv], {
-    type:'text/csv'
+    type:'text/csv;charset=utf-8;'
   });
 
   const a =
@@ -1083,12 +1080,15 @@ function exportCSV(rows,fileName){
   a.download =
   fileName;
 
+  document.body.appendChild(a);
+
   a.click();
+
+  document.body.removeChild(a);
 
 }
 
 </script>
 
 </body>
-
 </html>
