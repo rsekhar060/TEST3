@@ -35,8 +35,8 @@ body{
 }
 
 .logo{
-  padding:25px;
-  font-size:32px;
+  padding:24px;
+  font-size:30px;
   font-weight:700;
   border-bottom:1px solid #1e2535;
 }
@@ -113,7 +113,7 @@ body{
 }
 
 .header h1{
-  font-size:36px;
+  font-size:34px;
 }
 
 .export-btn{
@@ -247,6 +247,11 @@ body{
   border-radius:12px;
   cursor:pointer;
   font-weight:600;
+  transition:0.3s;
+}
+
+.btn:hover{
+  opacity:0.9;
 }
 
 .btn-approve{
@@ -316,7 +321,7 @@ body{
 
     <h1>Instamart TP Dashboard</h1>
 
-    <button class="export-btn">
+    <button class="export-btn" onclick="exportData()">
       EXPORT ALL
     </button>
 
@@ -500,16 +505,28 @@ fetch(API_URL)
 
         <div class="action-row">
 
-          <button class="btn btn-approve">
+          <button
+            class="btn btn-approve"
+            onclick="approvePO('${item.PoNumber}')">
+
             Approve
+
           </button>
 
-          <button class="btn btn-flag">
-            Flag
+          <button
+            class="btn btn-flag"
+            onclick="flagPO('${item.PoNumber}')">
+
+            Flag Platform
+
           </button>
 
-          <button class="btn btn-refresh">
-            Refresh
+          <button
+            class="btn btn-refresh"
+            onclick="refreshPO()">
+
+            TP Refresh
+
           </button>
 
         </div>
@@ -551,7 +568,38 @@ fetch(API_URL)
 
 });
 
+function approvePO(po){
+
+  alert(
+    "Approved : " + po
+  );
+
+}
+
+function flagPO(po){
+
+  alert(
+    "Flagged : " + po
+  );
+
+}
+
+function refreshPO(){
+
+  location.reload();
+
+}
+
+function exportData(){
+
+  alert(
+    "Export Started"
+  );
+
+}
+
 </script>
 
 </body>
+
 </html>
