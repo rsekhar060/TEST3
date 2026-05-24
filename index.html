@@ -787,18 +787,22 @@ function showPO(po){
     let refreshTP =
     poTP;
 
-    if(r.MANUAL_STATUS === "APPROVED"){
-      finalStatus = "APPROVED";
-    }
+    if(status === "REVIEW"){
 
-    if(r.MANUAL_STATUS === "FLAGGED"){
-      finalStatus = "FLAG PLATFORM";
-    }
+  if(r.MANUAL_STATUS === "APPROVED"){
+    finalStatus = "APPROVED";
+  }
 
-    if(r.MANUAL_STATUS === "REFRESH"){
-      finalStatus = "TP REFRESH";
-      refreshTP = ucTP;
-    }
+  if(r.MANUAL_STATUS === "FLAGGED"){
+    finalStatus = "FLAG PLATFORM";
+  }
+
+  if(r.MANUAL_STATUS === "REFRESH"){
+    finalStatus = "TP REFRESH";
+    refreshTP = ucTP;
+  }
+
+}
 
     let reason = "";
 
@@ -1072,18 +1076,22 @@ function exportCSV(rows,fileName){
     let refreshTP =
     poTP;
 
-    if(r.MANUAL_STATUS === "APPROVED"){
-      finalStatus = "APPROVED";
-    }
+    if(status === "REVIEW"){
 
-    if(r.MANUAL_STATUS === "FLAGGED"){
-      finalStatus = "FLAG PLATFORM";
-    }
+  if(r.MANUAL_STATUS === "APPROVED"){
+    finalStatus = "APPROVED";
+  }
 
-    if(r.MANUAL_STATUS === "REFRESH"){
-      finalStatus = "TP REFRESH";
-      refreshTP = ucTP;
-    }
+  if(r.MANUAL_STATUS === "FLAGGED"){
+    finalStatus = "FLAG PLATFORM";
+  }
+
+  if(r.MANUAL_STATUS === "REFRESH"){
+    finalStatus = "TP REFRESH";
+    refreshTP = ucTP;
+  }
+
+}
 
     let reason = "";
 
