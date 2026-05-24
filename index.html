@@ -220,6 +220,11 @@ td{
   color:#f59e0b;
 }
 
+.flagged{
+  background:#14532d;
+  color:#4ade80;
+}
+
 .reason{
   color:#94a3b8;
 }
@@ -251,32 +256,6 @@ td{
 .refresh-btn{
   background:#1e293b;
   color:white;
-}
-
-@media(max-width:1200px){
-
-  .stats{
-    grid-template-columns:repeat(2,1fr);
-  }
-
-}
-
-@media(max-width:768px){
-
-  body{
-    flex-direction:column;
-    height:auto;
-  }
-
-  .sidebar{
-    width:100%;
-    height:300px;
-  }
-
-  .stats{
-    grid-template-columns:1fr;
-  }
-
 }
 
 </style>
@@ -409,8 +388,7 @@ function buildSidebar(data){
 
   Object.keys(grouped).forEach(po => {
 
-    const rows =
-    grouped[po];
+    const rows = grouped[po];
 
     let dotClass = "green";
 
@@ -489,9 +467,7 @@ function updateStats(data){
       clean++;
     }
 
-    else if(
-      status === "AUTO-APPROVED"
-    ){
+    else if(status === "AUTO-APPROVED"){
       approved++;
     }
 
@@ -547,6 +523,7 @@ function showPO(po){
             <th>UC TP</th>
             <th>DIFF</th>
             <th>STATUS</th>
+            <th>FINAL STATUS</th>
             <th>REASON</th>
             <th>ACTIONS</th>
 
@@ -572,6 +549,11 @@ function showPO(po){
       -
       Number(r.UC_PRICE)
     ).toFixed(2);
+
+    const finalStatus =
+    r.MANUAL_STATUS === "APPROVED"
+    ? "FLAGGED"
+    : status;
 
     html += `
 
@@ -603,6 +585,24 @@ function showPO(po){
 
         </td>
 
+        <td>
+
+          <span class="
+          status
+          ${finalStatus === 'FLAGGED'
+            ? 'flagged'
+            : finalStatus === 'CLEAN'
+            ? 'clean'
+            : finalStatus === 'AUTO-APPROVED'
+            ? 'approved'
+            : 'review'}">
+
+            ${finalStatus}
+
+          </span>
+
+        </td>
+
         <td class="reason">
 
           ${status === 'CLEAN'
@@ -619,9 +619,11 @@ function showPO(po){
 
             <button
               class="action-btn approve-btn"
-              onclick="approveSKU(this)">
+              onclick="approveSKU(this,'${r.SKU_ID}')">
 
-              Approve
+              ${r.MANUAL_STATUS === "APPROVED"
+                ? "Approved"
+                : "Approve"}
 
             </button>
 
@@ -666,13 +668,26 @@ function showPO(po){
 
 }
 
-function approveSKU(btn){
+function approveSKU(btn,sku){
 
   btn.innerText =
   "Approved";
 
   btn.style.background =
   "#16a34a";
+
+  FULL_DATA.forEach(r => {
+
+    if(r.SKU_ID === sku){
+
+      r.MANUAL_STATUS =
+      "APPROVED";
+
+    }
+
+  });
+
+  showPO(currentPO);
 
 }
 
@@ -703,7 +718,7 @@ function exportPO(po){
   );
 
   let csv =
-  "PoNumber,SKU_ID,FacilityName,PO_PRICE,UC_PRICE,STATUS\n";
+  "PoNumber,SKU_ID,FacilityName,PO_PRICE,UC_PRICE,STATUS,FINAL_STATUS\n";
 
   rows.forEach(r => {
 
@@ -713,8 +728,21 @@ function exportPO(po){
       r.UC_PRICE
     );
 
+    let finalStatus =
+    status;
+
+    if(
+      r.MANUAL_STATUS ===
+      "APPROVED"
+    ){
+
+      finalStatus =
+      "FLAGGED";
+
+    }
+
     csv +=
-    `${r.PoNumber},${r.SKU_ID},${r.FacilityName},${r.PO_PRICE},${r.UC_PRICE},${status}\n`;
+    `${r.PoNumber},${r.SKU_ID},${r.FacilityName},${r.PO_PRICE},${r.UC_PRICE},${status},${finalStatus}\n`;
 
   });
 
