@@ -704,6 +704,42 @@ function showPO(po){
       poTP - ucTP
     ).toFixed(2);
 
+    let finalStatus =
+    status;
+
+    let refreshTP =
+    poTP;
+
+    if(r.MANUAL_STATUS === "APPROVED"){
+
+      finalStatus =
+      "APPROVED";
+
+      refreshTP =
+      poTP;
+
+    }
+
+    if(r.MANUAL_STATUS === "FLAGGED"){
+
+      finalStatus =
+      "FLAG PLATFORM";
+
+      refreshTP =
+      poTP;
+
+    }
+
+    if(r.MANUAL_STATUS === "REFRESH"){
+
+      finalStatus =
+      "TP REFRESH";
+
+      refreshTP =
+      ucTP;
+
+    }
+
     let reason =
     "";
 
@@ -739,7 +775,14 @@ function showPO(po){
           <input
             type="number"
             class="po-input"
-            value="${poTP}">
+            value="${poTP}"
+            step="0.01"
+            onchange="
+              updatePOTP(
+                '${r.SKU_ID}',
+                this.value
+              )
+            ">
 
         </td>
 
@@ -767,20 +810,24 @@ function showPO(po){
 
           <span class="
           status
-          ${status === 'CLEAN'
-            ? 'clean'
-            : status === 'AUTO-APPROVED'
+          ${finalStatus === 'APPROVED'
             ? 'approved'
-            : 'review'}">
+            : finalStatus === 'FLAG PLATFORM'
+            ? 'flagged'
+            : finalStatus === 'TP REFRESH'
+            ? 'refresh'
+            : status === 'REVIEW'
+            ? 'review'
+            : 'approved'}">
 
-            ${status}
+            ${finalStatus}
 
           </span>
 
         </td>
 
         <td>
-          ₹${poTP}
+          ₹${refreshTP}
         </td>
 
         <td class="reason">
@@ -791,16 +838,28 @@ function showPO(po){
 
           <div class="action-buttons">
 
-            <button class="action-btn approve-btn">
+            <button
+              class="action-btn approve-btn"
+              onclick="approveSKU('${r.SKU_ID}')">
+
               Approve
+
             </button>
 
-            <button class="action-btn flag-btn">
+            <button
+              class="action-btn flag-btn"
+              onclick="flagSKU('${r.SKU_ID}')">
+
               Flag Platform
+
             </button>
 
-            <button class="action-btn refresh-btn">
+            <button
+              class="action-btn refresh-btn"
+              onclick="refreshSKU('${r.SKU_ID}')">
+
               TP Refresh
+
             </button>
 
           </div>
@@ -825,6 +884,196 @@ function showPO(po){
 
   document.getElementById("content")
   .innerHTML = html;
+
+}
+
+function updatePOTP(sku,newPrice){
+
+  FULL_DATA.forEach(r => {
+
+    if(r.SKU_ID === sku){
+
+      r.PO_PRICE =
+      Number(newPrice);
+
+      r.MANUAL_STATUS =
+      "FLAGGED";
+
+    }
+
+  });
+
+  showPO(currentPO);
+
+}
+
+function approveSKU(sku){
+
+  FULL_DATA.forEach(r => {
+
+    if(r.SKU_ID === sku){
+
+      r.MANUAL_STATUS =
+      "APPROVED";
+
+    }
+
+  });
+
+  showPO(currentPO);
+
+}
+
+function flagSKU(sku){
+
+  FULL_DATA.forEach(r => {
+
+    if(r.SKU_ID === sku){
+
+      r.MANUAL_STATUS =
+      "FLAGGED";
+
+    }
+
+  });
+
+  showPO(currentPO);
+
+}
+
+function refreshSKU(sku){
+
+  FULL_DATA.forEach(r => {
+
+    if(r.SKU_ID === sku){
+
+      r.MANUAL_STATUS =
+      "REFRESH";
+
+    }
+
+  });
+
+  showPO(currentPO);
+
+}
+
+function exportPO(po){
+
+  if(!po){
+    alert("Select PO First");
+    return;
+  }
+
+  const rows =
+  FULL_DATA.filter(r =>
+    r.PoNumber === po
+  );
+
+  exportCSV(rows, `${po}.csv`);
+
+}
+
+function exportAllPOs(){
+
+  exportCSV(
+    FULL_DATA,
+    "ALL_POS.csv"
+  );
+
+}
+
+function exportCSV(rows,fileName){
+
+  let csv =
+  "PoNumber,SKU_ID,SKU_Name,PO_PRICE,UC_PRICE,REFRESH_TP,STATUS,FINAL_STATUS,REASON\n";
+
+  rows.forEach(r => {
+
+    const poTP =
+    Number(r.PO_PRICE);
+
+    const ucTP =
+    Number(r.UC_PRICE);
+
+    const status =
+    getStatus(
+      poTP,
+      ucTP
+    );
+
+    let finalStatus =
+    status;
+
+    let refreshTP =
+    poTP;
+
+    if(r.MANUAL_STATUS === "APPROVED"){
+
+      finalStatus =
+      "APPROVED";
+
+    }
+
+    if(r.MANUAL_STATUS === "FLAGGED"){
+
+      finalStatus =
+      "FLAG PLATFORM";
+
+    }
+
+    if(r.MANUAL_STATUS === "REFRESH"){
+
+      finalStatus =
+      "TP REFRESH";
+
+      refreshTP =
+      ucTP;
+
+    }
+
+    let reason =
+    "";
+
+    const actualDiff =
+    poTP - ucTP;
+
+    if(actualDiff === 0){
+      reason = "TP matches exactly";
+    }
+
+    else if(Math.abs(actualDiff) <= 1){
+      reason = "Diff within ₹1";
+    }
+
+    else if(actualDiff > 1){
+      reason = "High in PO";
+    }
+
+    else{
+      reason = "High in UC";
+    }
+
+    csv +=
+`${r.PoNumber},${r.SKU_ID},${r.SKU_Name || ""},${poTP},${ucTP},${refreshTP},${status},${finalStatus},${reason}\n`;
+
+  });
+
+  const blob =
+  new Blob([csv], {
+    type:'text/csv'
+  });
+
+  const a =
+  document.createElement('a');
+
+  a.href =
+  URL.createObjectURL(blob);
+
+  a.download =
+  fileName;
+
+  a.click();
 
 }
 
