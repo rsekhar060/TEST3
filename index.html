@@ -601,29 +601,30 @@ function filterSidebar(type){
 
     let include = false;
 
+    const reviewed =
+      r.MANUAL_STATUS === "APPROVED" ||
+      r.MANUAL_STATUS === "FLAGGED" ||
+      r.MANUAL_STATUS === "REFRESH";
+
     if(type === "ALL"){
 
       include = true;
 
     }
 
-    else if(type === "REVIEW_SUCCESS"){
+    else if(
+      type === "REVIEW_SUCCESS" &&
+      status === "REVIEW" &&
+      reviewed
+    ){
 
-      if(
-        r.MANUAL_STATUS === "APPROVED" ||
-        r.MANUAL_STATUS === "FLAGGED" ||
-        r.MANUAL_STATUS === "REFRESH"
-      ){
-
-        include = true;
-
-      }
+      include = true;
 
     }
 
     else if(
       type === status &&
-      !r.MANUAL_STATUS
+      !reviewed
     ){
 
       include = true;
@@ -665,10 +666,14 @@ function updateStats(data){
       r.UC_PRICE
     );
 
-    if(
+    const reviewed =
       r.MANUAL_STATUS === "APPROVED" ||
       r.MANUAL_STATUS === "FLAGGED" ||
-      r.MANUAL_STATUS === "REFRESH"
+      r.MANUAL_STATUS === "REFRESH";
+
+    if(
+      status === "REVIEW" &&
+      reviewed
     ){
 
       reviewSuccess++;
@@ -687,7 +692,7 @@ function updateStats(data){
 
     }
 
-    else{
+    else if(status === "REVIEW"){
 
       review++;
 
@@ -949,9 +954,6 @@ function updatePOTP(sku,newPrice){
 
       r.PO_PRICE =
       Number(newPrice);
-
-      r.MANUAL_STATUS =
-      "FLAGGED";
 
     }
 
