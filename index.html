@@ -1,13 +1,11 @@
-# Modern TP Dashboard HTML
-
-Save as `index.html`
-
-```html
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>TP Dashboard</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -37,36 +35,34 @@ body{
 }
 
 .logo{
-  padding:20px;
-  font-size:28px;
+  padding:25px;
+  font-size:32px;
   font-weight:700;
   border-bottom:1px solid #1e2535;
 }
 
 .sidebar-title{
   padding:20px;
-  color:#8f9bb3;
+  color:#94a3b8;
   font-size:12px;
   letter-spacing:2px;
 }
 
 .po-list{
-  padding:0 10px 20px;
+  padding:0 12px 20px;
 }
 
 .po-item{
-  background:#121826;
-  border:1px solid #1f2a40;
+  background:#111827;
+  border:1px solid #1f2937;
   border-radius:14px;
   padding:16px;
   margin-bottom:12px;
-  cursor:pointer;
   transition:0.3s;
 }
 
 .po-item:hover{
   border-color:#3b82f6;
-  transform:translateY(-2px);
 }
 
 .po-top{
@@ -99,8 +95,8 @@ body{
 }
 
 .po-lines{
-  color:#94a3b8;
   margin-top:8px;
+  color:#94a3b8;
 }
 
 .main{
@@ -116,15 +112,15 @@ body{
   margin-bottom:25px;
 }
 
-.header-left h1{
-  font-size:34px;
+.header h1{
+  font-size:36px;
 }
 
 .export-btn{
   background:#111827;
-  border:1px solid #2b3548;
   color:white;
-  padding:12px 20px;
+  border:1px solid #1f2937;
+  padding:12px 18px;
   border-radius:12px;
   cursor:pointer;
 }
@@ -140,18 +136,17 @@ body{
   background:#111827;
   border:1px solid #1f2937;
   border-radius:18px;
-  padding:24px;
+  padding:22px;
 }
 
 .stat-title{
   color:#94a3b8;
   font-size:13px;
-  letter-spacing:1px;
   margin-bottom:10px;
 }
 
 .stat-value{
-  font-size:42px;
+  font-size:40px;
   font-weight:700;
 }
 
@@ -174,14 +169,14 @@ body{
 
 .card-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+  grid-template-columns:repeat(auto-fill,minmax(350px,1fr));
   gap:20px;
 }
 
 .tp-card{
   background:#111827;
   border:1px solid #1f2937;
-  border-radius:20px;
+  border-radius:18px;
   padding:22px;
 }
 
@@ -222,7 +217,6 @@ body{
 .product-name{
   color:#cbd5e1;
   margin-bottom:20px;
-  line-height:1.5;
 }
 
 .metrics{
@@ -232,8 +226,8 @@ body{
 }
 
 .metric small{
-  color:#94a3b8;
   display:block;
+  color:#94a3b8;
   margin-bottom:6px;
 }
 
@@ -297,13 +291,16 @@ body{
 }
 
 </style>
+
 </head>
 
 <body>
 
 <div class="sidebar">
 
-  <div class="logo">TP Dashboard</div>
+  <div class="logo">
+    TP Dashboard
+  </div>
 
   <div class="sidebar-title">
     PURCHASE ORDERS
@@ -317,9 +314,7 @@ body{
 
   <div class="header">
 
-    <div class="header-left">
-      <h1>Instamart TP Dashboard</h1>
-    </div>
+    <h1>Instamart TP Dashboard</h1>
 
     <button class="export-btn">
       EXPORT ALL
@@ -366,10 +361,13 @@ body{
 
 <script>
 
-const API_URL = "https://script.google.com/macros/s/AKfycbxYzvrWQ0g1AIuEgiLdlVXX3YD5i1bIDwVbmBRUbZaqABqdS08DuisAFUTkncq1MCEKyw/exec";
+const API_URL =
+"https://script.google.com/macros/s/AKfycbxYzvrWQ0g1AIuEgiLdlVXX3YD5i1bIDwVbmBRUbZaqABqdS08DuisAFUTkncq1MCEKyw/exec";
 
 fetch(API_URL)
+
 .then(res => res.json())
+
 .then(data => {
 
   let clean = 0;
@@ -385,29 +383,43 @@ fetch(API_URL)
 
     totalPOs.add(item.PoNumber);
 
-    const poPrice = Number(item.PO_PRICE || 0);
-    const ucPrice = Number(item.UC_PRICE || 0);
+    const poPrice =
+      Number(item.PO_PRICE || 0);
 
-    const diff = Math.abs(poPrice - ucPrice).toFixed(2);
+    const ucPrice =
+      Number(item.UC_PRICE || 0);
+
+    const diff =
+      Math.abs(poPrice - ucPrice).toFixed(2);
 
     let status = "CLEAN";
     let badgeClass = "badge-clean";
     let dotClass = "green";
 
     if(diff > 0 && diff <= 2){
+
       status = "APPROVED";
       badgeClass = "badge-approved";
       dotClass = "blue";
+
       approved++;
+
     }
+
     else if(diff > 2){
+
       status = "REVIEW";
       badgeClass = "badge-review";
       dotClass = "orange";
+
       review++;
+
     }
+
     else{
+
       clean++;
+
     }
 
     sidebarHTML += `
@@ -415,8 +427,13 @@ fetch(API_URL)
       <div class="po-item">
 
         <div class="po-top">
-          <div class="po-number">${item.PoNumber}</div>
+
+          <div class="po-number">
+            ${item.PoNumber}
+          </div>
+
           <div class="dot ${dotClass}"></div>
+
         </div>
 
         <div class="po-lines">
@@ -432,8 +449,15 @@ fetch(API_URL)
       <div class="tp-card">
 
         <div class="tp-header">
-          <div class="tp-title">${item.SkuCode}</div>
-          <div class="badge ${badgeClass}">${status}</div>
+
+          <div class="tp-title">
+            ${item.SkuCode}
+          </div>
+
+          <div class="badge ${badgeClass}">
+            ${status}
+          </div>
+
         </div>
 
         <div class="product-name">
@@ -443,18 +467,33 @@ fetch(API_URL)
         <div class="metrics">
 
           <div class="metric">
+
             <small>PO PRICE</small>
-            <div class="metric-value">₹${poPrice}</div>
+
+            <div class="metric-value">
+              ₹${poPrice}
+            </div>
+
           </div>
 
           <div class="metric">
+
             <small>UC PRICE</small>
-            <div class="metric-value">₹${ucPrice}</div>
+
+            <div class="metric-value">
+              ₹${ucPrice}
+            </div>
+
           </div>
 
           <div class="metric">
+
             <small>DIFF</small>
-            <div class="metric-value">₹${diff}</div>
+
+            <div class="metric-value">
+              ₹${diff}
+            </div>
+
           </div>
 
         </div>
@@ -481,19 +520,33 @@ fetch(API_URL)
 
   });
 
-  document.getElementById("poList").innerHTML = sidebarHTML;
-  document.getElementById("cardGrid").innerHTML = cardHTML;
+  document.getElementById("poList")
+    .innerHTML = sidebarHTML;
 
-  document.getElementById("totalPOs").innerText = totalPOs.size;
-  document.getElementById("totalLines").innerText = data.length;
-  document.getElementById("cleanCount").innerText = clean;
-  document.getElementById("approvedCount").innerText = approved;
-  document.getElementById("reviewCount").innerText = review;
+  document.getElementById("cardGrid")
+    .innerHTML = cardHTML;
+
+  document.getElementById("totalPOs")
+    .innerText = totalPOs.size;
+
+  document.getElementById("totalLines")
+    .innerText = data.length;
+
+  document.getElementById("cleanCount")
+    .innerText = clean;
+
+  document.getElementById("approvedCount")
+    .innerText = approved;
+
+  document.getElementById("reviewCount")
+    .innerText = review;
 
 })
+
 .catch(err => {
 
   console.log(err);
+
   alert("Apps Script Error");
 
 });
@@ -502,42 +555,3 @@ fetch(API_URL)
 
 </body>
 </html>
-```
-
----
-
-# Apps Script
-
-```javascript
-function doGet() {
-
-  const sheet = SpreadsheetApp
-    .getActiveSpreadsheet()
-    .getSheetByName("TEST1");
-
-  const data = sheet
-    .getDataRange()
-    .getValues();
-
-  const headers = data.shift();
-
-  let output = [];
-
-  data.forEach(row => {
-
-    let obj = {};
-
-    headers.forEach((h,i) => {
-      obj[h] = row[i];
-    });
-
-    output.push(obj);
-
-  });
-
-  return ContentService
-    .createTextOutput(JSON.stringify(output))
-    .setMimeType(ContentService.MimeType.JSON);
-
-}
-```
