@@ -652,6 +652,237 @@ function updateStats(data){
 
 }
 
+function showPO(po){
+
+  currentPO = po;
+
+  const rows =
+  FULL_DATA.filter(r =>
+    r.PoNumber === po
+  );
+
+  let html = `
+
+    <div class="table-card">
+
+      <div class="table-header">
+        ${po}
+      </div>
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>SKU_ID</th>
+            <th>SKU NAME</th>
+            <th>PO TP</th>
+            <th>UC TP</th>
+            <th>DIFF</th>
+            <th>STATUS</th>
+            <th>FINAL STATUS</th>
+            <th>REFRESH TP</th>
+            <th>REASON</th>
+            <th>ACTIONS</th>
+
+          </tr>
+
+        </thead>
+
+        <tbody>
+
+  `;
+
+  rows.forEach(r => {
+
+    const poTP =
+    Number(r.PO_PRICE);
+
+    const ucTP =
+    Number(r.UC_PRICE);
+
+    const status =
+    getStatus(
+      poTP,
+      ucTP
+    );
+
+    const diff =
+    Math.abs(
+      poTP - ucTP
+    ).toFixed(2);
+
+    let finalStatus =
+    status;
+
+    let refreshTP =
+    poTP;
+
+    if(status === "REVIEW"){
+
+      if(r.MANUAL_STATUS === "APPROVED"){
+        finalStatus = "APPROVED";
+      }
+
+      if(r.MANUAL_STATUS === "FLAGGED"){
+        finalStatus = "FLAG PLATFORM";
+      }
+
+      if(r.MANUAL_STATUS === "REFRESH"){
+        finalStatus = "TP REFRESH";
+        refreshTP = ucTP;
+      }
+
+    }
+
+    let reason =
+    "";
+
+    const actualDiff =
+    poTP - ucTP;
+
+    if(actualDiff === 0){
+      reason = "TP matches exactly";
+    }
+
+    else if(Math.abs(actualDiff) <= 1){
+      reason = "Diff within ₹1";
+    }
+
+    else if(actualDiff > 1){
+      reason = "High in PO";
+    }
+
+    else{
+      reason = "High in UC";
+    }
+
+    html += `
+
+      <tr>
+
+        <td>${r.SKU_ID}</td>
+
+        <td>${getSKUName(r)}</td>
+
+        <td>
+
+          <input
+            type="number"
+            class="po-input"
+            value="${poTP}"
+            step="0.01"
+            onchange="
+              updatePOTP(
+                '${r.SKU_ID}',
+                this.value
+              )
+            ">
+
+        </td>
+
+        <td>₹${ucTP}</td>
+
+        <td>₹${diff}</td>
+
+        <td>
+
+          <span class="
+          status
+          ${status === 'CLEAN'
+            ? 'clean'
+            : status === 'AUTO-APPROVED'
+            ? 'approved'
+            : 'review'}">
+
+            ${status}
+
+          </span>
+
+        </td>
+
+        <td>
+
+          <span class="
+          status
+          ${finalStatus === 'APPROVED'
+            ? 'approved'
+            : finalStatus === 'FLAG PLATFORM'
+            ? 'flagged'
+            : finalStatus === 'TP REFRESH'
+            ? 'refresh'
+            : status === 'REVIEW'
+            ? 'review'
+            : 'approved'}">
+
+            ${finalStatus}
+
+          </span>
+
+        </td>
+
+        <td>
+          ₹${refreshTP}
+        </td>
+
+        <td class="reason">
+          ${reason}
+        </td>
+
+        <td>
+
+          <div class="action-buttons">
+
+            <button
+              class="action-btn approve-btn"
+              onclick="approveSKU('${r.SKU_ID}')">
+
+              Approve
+
+            </button>
+
+            <button
+              class="action-btn flag-btn"
+              onclick="flagSKU('${r.SKU_ID}')">
+
+              Flag Platform
+
+            </button>
+
+            <button
+              class="action-btn refresh-btn"
+              onclick="refreshSKU('${r.SKU_ID}')">
+
+              TP Refresh
+
+            </button>
+
+          </div>
+
+        </td>
+
+      </tr>
+
+    `;
+
+  });
+
+  html += `
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  `;
+
+  document.getElementById("content")
+  .innerHTML = html;
+
+}
+
 </script>
 
 </body>
