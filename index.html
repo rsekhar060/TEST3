@@ -44,7 +44,7 @@ body{
 .sidebar-title{
   padding:20px;
   color:#94a3b8;
-  font-size:11px;
+  font-size:10px;
   letter-spacing:2px;
 }
 
@@ -174,7 +174,7 @@ body{
   background:#111827;
   border:1px solid #1f2937;
   border-radius:18px;
-  overflow:hidden;
+  overflow:auto;
   margin-bottom:30px;
 }
 
@@ -195,7 +195,7 @@ th{
   color:#94a3b8;
   text-align:left;
   padding:14px;
-  font-size:11px;
+  font-size:10px;
   letter-spacing:1px;
 }
 
@@ -209,7 +209,7 @@ td{
 .status{
   padding:6px 12px;
   border-radius:8px;
-  font-size:11px;
+  font-size:10px;
   font-weight:700;
   display:inline-block;
 }
@@ -255,7 +255,7 @@ td{
   padding:8px 12px;
   border-radius:8px;
   cursor:pointer;
-  font-size:11px;
+  font-size:10px;
   font-weight:600;
 }
 
@@ -315,17 +315,13 @@ td{
       <button
         class="export-btn"
         onclick="exportPO(currentPO)">
-
         EXPORT SELECTED PO
-
       </button>
 
       <button
         class="export-btn"
         onclick="exportAllPOs()">
-
         EXPORT ALL POs
-
       </button>
 
     </div>
@@ -364,6 +360,193 @@ td{
   <div id="content"></div>
 
 </div>
+
+<script>
+
+const API_URL =
+"https://script.google.com/macros/s/AKfycbxYzvrWQ0g1AIuEgiLdlVXX3YD5i1bIDwVbmBRUbZaqABqdS08DuisAFUTkncq1MCEKyw/exec";
+
+let FULL_DATA = [];
+let currentPO = "";
+
+async function loadData(){
+
+  try{
+
+    const response =
+    await fetch(API_URL);
+
+    const data =
+    await response.json();
+
+    FULL_DATA = data;
+
+    buildSidebar(FULL_DATA);
+
+    updateStats(FULL_DATA);
+
+    if(FULL_DATA.length > 0){
+
+      showPO(FULL_DATA[0].PoNumber);
+
+    }
+
+  }
+
+  catch(error){
+
+    console.log(error);
+
+    alert("Data Loading Failed");
+
+  }
+
+}
+
+loadData();
+
+function getStatus(po,uc){
+
+  const diff =
+  Math.abs(Number(po)-Number(uc));
+
+  if(diff === 0){
+    return "CLEAN";
+  }
+
+  if(diff <= 2){
+    return "AUTO-APPROVED";
+  }
+
+  return "REVIEW";
+
+}
+
+function buildSidebar(data){
+
+  const grouped = {};
+
+  data.forEach(r => {
+
+    if(!grouped[r.PoNumber]){
+      grouped[r.PoNumber] = [];
+    }
+
+    grouped[r.PoNumber].push(r);
+
+  });
+
+  let html = "";
+
+  Object.keys(grouped).forEach(po => {
+
+    const rows = grouped[po];
+
+    let dotClass = "green";
+
+    rows.forEach(r => {
+
+      const status =
+      getStatus(
+        r.PO_PRICE,
+        r.UC_PRICE
+      );
+
+      if(status === "REVIEW"){
+        dotClass = "orange";
+      }
+
+      else if(
+        status === "AUTO-APPROVED"
+        &&
+        dotClass !== "orange"
+      ){
+        dotClass = "blue";
+      }
+
+    });
+
+    html += `
+
+      <div
+        class="po-item"
+        onclick="showPO('${po}')">
+
+        <div class="po-top">
+
+          <div class="po-number">
+            ${po}
+          </div>
+
+          <div class="dot ${dotClass}"></div>
+
+        </div>
+
+        <div class="po-lines">
+          ${rows.length} lines
+        </div>
+
+      </div>
+
+    `;
+
+  });
+
+  document.getElementById("poList")
+  .innerHTML = html;
+
+}
+
+function updateStats(data){
+
+  const pos = new Set();
+
+  let clean = 0;
+  let approved = 0;
+  let review = 0;
+
+  data.forEach(r => {
+
+    pos.add(r.PoNumber);
+
+    const status =
+    getStatus(
+      r.PO_PRICE,
+      r.UC_PRICE
+    );
+
+    if(status === "CLEAN"){
+      clean++;
+    }
+
+    else if(status === "AUTO-APPROVED"){
+      approved++;
+    }
+
+    else{
+      review++;
+    }
+
+  });
+
+  document.getElementById("totalPOs")
+  .innerText = pos.size;
+
+  document.getElementById("totalLines")
+  .innerText = data.length;
+
+  document.getElementById("cleanCount")
+  .innerText = clean;
+
+  document.getElementById("approvedCount")
+  .innerText = approved;
+
+  document.getElementById("reviewCount")
+  .innerText = review;
+
+}
+
+</script>
 
 </body>
 
