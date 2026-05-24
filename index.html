@@ -133,7 +133,7 @@ body{
 
 .stats{
   display:grid;
-  grid-template-columns:repeat(6,1fr);
+  grid-template-columns:repeat(5,1fr);
   gap:12px;
   margin-bottom:20px;
 }
@@ -422,24 +422,6 @@ td{
 
     </div>
 
-    <div
-      class="stat-card"
-      onclick="filterSidebar('REVIEW_SUCCESS')">
-
-      <div class="stat-title">
-        REVIEW SUCCESS
-      </div>
-
-      <div
-        class="stat-value blue-text"
-        id="reviewSuccessCount">
-
-        0
-
-      </div>
-
-    </div>
-
   </div>
 
   <div id="content"></div>
@@ -609,20 +591,6 @@ function filterSidebar(type){
       include = true;
     }
 
-    else if(
-      type === "REVIEW_SUCCESS"
-      &&
-      (
-        r.MANUAL_STATUS === "APPROVED"
-        ||
-        r.MANUAL_STATUS === "FLAGGED"
-        ||
-        r.MANUAL_STATUS === "REFRESH"
-      )
-    ){
-      include = true;
-    }
-
     if(include){
 
       if(!grouped[r.PoNumber]){
@@ -646,7 +614,6 @@ function updateStats(data){
   let clean = 0;
   let approved = 0;
   let review = 0;
-  let reviewSuccess = 0;
 
   data.forEach(r => {
 
@@ -670,16 +637,6 @@ function updateStats(data){
       review++;
     }
 
-    if(
-      r.MANUAL_STATUS === "APPROVED"
-      ||
-      r.MANUAL_STATUS === "FLAGGED"
-      ||
-      r.MANUAL_STATUS === "REFRESH"
-    ){
-      reviewSuccess++;
-    }
-
   });
 
   document.getElementById("totalPOs")
@@ -696,9 +653,6 @@ function updateStats(data){
 
   document.getElementById("reviewCount")
   .innerText = review;
-
-  document.getElementById("reviewSuccessCount")
-  .innerText = reviewSuccess;
 
 }
 
@@ -746,29 +700,73 @@ function showPO(po){
 
   rows.forEach(r => {
 
-    const poTP = Number(r.PO_PRICE);
-    const ucTP = Number(r.UC_PRICE);
+    const poTP =
+    Number(r.PO_PRICE);
+
+    const ucTP =
+    Number(r.UC_PRICE);
 
     const status =
-    getStatus(poTP, ucTP);
+    getStatus(
+      poTP,
+      ucTP
+    );
 
     const diff =
-    Math.abs(poTP - ucTP).toFixed(2);
+    Math.abs(
+      poTP - ucTP
+    ).toFixed(2);
 
-    let finalStatus = status;
-    let refreshTP = poTP;
+    let finalStatus =
+    status;
+
+    let refreshTP =
+    poTP;
 
     if(r.MANUAL_STATUS === "APPROVED"){
-      finalStatus = "APPROVED";
+
+      finalStatus =
+      "APPROVED";
+
     }
 
     if(r.MANUAL_STATUS === "FLAGGED"){
-      finalStatus = "FLAG PLATFORM";
+
+      finalStatus =
+      "FLAG PLATFORM";
+
     }
 
     if(r.MANUAL_STATUS === "REFRESH"){
-      finalStatus = "TP REFRESH";
-      refreshTP = ucTP;
+
+      finalStatus =
+      "TP REFRESH";
+
+      refreshTP =
+      ucTP;
+
+    }
+
+    let reason =
+    "";
+
+    const actualDiff =
+    poTP - ucTP;
+
+    if(actualDiff === 0){
+      reason = "TP matches exactly";
+    }
+
+    else if(Math.abs(actualDiff) <= 1){
+      reason = "Diff within ₹1";
+    }
+
+    else if(actualDiff > 1){
+      reason = "High in PO";
+    }
+
+    else{
+      reason = "High in UC";
     }
 
     html += `
@@ -785,6 +783,7 @@ function showPO(po){
             type="number"
             class="po-input"
             value="${poTP}"
+            step="0.01"
             onchange="
               updatePOTP(
                 '${r.SKU_ID}',
@@ -798,13 +797,49 @@ function showPO(po){
 
         <td>₹${diff}</td>
 
-        <td>${status}</td>
+        <td>
 
-        <td>${finalStatus}</td>
+          <span class="
+          status
+          ${status === 'CLEAN'
+            ? 'clean'
+            : status === 'AUTO-APPROVED'
+            ? 'approved'
+            : 'review'}">
 
-        <td>₹${refreshTP}</td>
+            ${status}
 
-        <td>-</td>
+          </span>
+
+        </td>
+
+        <td>
+
+          <span class="
+          status
+          ${finalStatus === 'APPROVED'
+            ? 'approved'
+            : finalStatus === 'FLAG PLATFORM'
+            ? 'flagged'
+            : finalStatus === 'TP REFRESH'
+            ? 'refresh'
+            : status === 'REVIEW'
+            ? 'review'
+            : 'approved'}">
+
+            ${finalStatus}
+
+          </span>
+
+        </td>
+
+        <td>
+          ₹${refreshTP}
+        </td>
+
+        <td class="reason">
+          ${reason}
+        </td>
 
         <td>
 
@@ -822,7 +857,7 @@ function showPO(po){
               class="action-btn flag-btn"
               onclick="flagSKU('${r.SKU_ID}')">
 
-              Flag
+              Flag Platform
 
             </button>
 
@@ -830,7 +865,7 @@ function showPO(po){
               class="action-btn refresh-btn"
               onclick="refreshSKU('${r.SKU_ID}')">
 
-              Refresh
+              TP Refresh
 
             </button>
 
@@ -845,9 +880,13 @@ function showPO(po){
   });
 
   html += `
+
         </tbody>
+
       </table>
+
     </div>
+
   `;
 
   document.getElementById("content")
@@ -861,7 +900,11 @@ function updatePOTP(sku,newPrice){
 
     if(r.SKU_ID === sku){
 
-      r.PO_PRICE = Number(newPrice);
+      r.PO_PRICE =
+      Number(newPrice);
+
+      r.MANUAL_STATUS =
+      "FLAGGED";
 
     }
 
@@ -877,15 +920,14 @@ function approveSKU(sku){
 
     if(r.SKU_ID === sku){
 
-      r.MANUAL_STATUS = "APPROVED";
+      r.MANUAL_STATUS =
+      "APPROVED";
 
     }
 
   });
 
   showPO(currentPO);
-
-  updateStats(FULL_DATA);
 
 }
 
@@ -895,15 +937,14 @@ function flagSKU(sku){
 
     if(r.SKU_ID === sku){
 
-      r.MANUAL_STATUS = "FLAGGED";
+      r.MANUAL_STATUS =
+      "FLAGGED";
 
     }
 
   });
 
   showPO(currentPO);
-
-  updateStats(FULL_DATA);
 
 }
 
@@ -913,15 +954,14 @@ function refreshSKU(sku){
 
     if(r.SKU_ID === sku){
 
-      r.MANUAL_STATUS = "REFRESH";
+      r.MANUAL_STATUS =
+      "REFRESH";
 
     }
 
   });
 
   showPO(currentPO);
-
-  updateStats(FULL_DATA);
 
 }
 
@@ -943,19 +983,86 @@ function exportPO(po){
 
 function exportAllPOs(){
 
-  exportCSV(FULL_DATA,"ALL_POS.csv");
+  exportCSV(
+    FULL_DATA,
+    "ALL_POS.csv"
+  );
 
 }
 
 function exportCSV(rows,fileName){
 
   let csv =
-  `"PoNumber","SKU_ID","SKU_Name","PO_PRICE","UC_PRICE"\n`;
+  `"PoNumber","SKU_ID","SKU_Name","PO_PRICE","UC_PRICE","REFRESH_TP","STATUS","FINAL_STATUS","REASON"\n`;
 
   rows.forEach(r => {
 
+    const poTP =
+    Number(r.PO_PRICE);
+
+    const ucTP =
+    Number(r.UC_PRICE);
+
+    const status =
+    getStatus(
+      poTP,
+      ucTP
+    );
+
+    let finalStatus =
+    status;
+
+    let refreshTP =
+    poTP;
+
+    if(r.MANUAL_STATUS === "APPROVED"){
+
+      finalStatus =
+      "APPROVED";
+
+    }
+
+    if(r.MANUAL_STATUS === "FLAGGED"){
+
+      finalStatus =
+      "FLAG PLATFORM";
+
+    }
+
+    if(r.MANUAL_STATUS === "REFRESH"){
+
+      finalStatus =
+      "TP REFRESH";
+
+      refreshTP =
+      ucTP;
+
+    }
+
+    let reason =
+    "";
+
+    const actualDiff =
+    poTP - ucTP;
+
+    if(actualDiff === 0){
+      reason = "TP matches exactly";
+    }
+
+    else if(Math.abs(actualDiff) <= 1){
+      reason = "Diff within ₹1";
+    }
+
+    else if(actualDiff > 1){
+      reason = "High in PO";
+    }
+
+    else{
+      reason = "High in UC";
+    }
+
     csv +=
-`"${r.PoNumber}","${r.SKU_ID}","${getSKUName(r)}","${r.PO_PRICE}","${r.UC_PRICE}"\n`;
+`"${String(r.PoNumber || "").replace(/"/g,'""')}","${String(r.SKU_ID || "").replace(/"/g,'""')}","${String(getSKUName(r) || "").replace(/"/g,'""')}","${poTP}","${ucTP}","${refreshTP}","${status}","${finalStatus}","${String(reason || "").replace(/"/g,'""')}"\n`;
 
   });
 
