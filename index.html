@@ -221,8 +221,13 @@ td{
 }
 
 .flagged{
-  background:#14532d;
-  color:#4ade80;
+  background:#78350f;
+  color:#facc15;
+}
+
+.refresh{
+  background:#1e293b;
+  color:#cbd5e1;
 }
 
 .reason{
@@ -550,10 +555,29 @@ function showPO(po){
       Number(r.UC_PRICE)
     ).toFixed(2);
 
-    const finalStatus =
-    r.MANUAL_STATUS === "APPROVED"
-    ? "FLAGGED"
-    : status;
+    let finalStatus =
+    status;
+
+    if(r.MANUAL_STATUS === "APPROVED"){
+
+      finalStatus =
+      "APPROVED";
+
+    }
+
+    if(r.MANUAL_STATUS === "FLAGGED"){
+
+      finalStatus =
+      "EDIT PO TP";
+
+    }
+
+    if(r.MANUAL_STATUS === "REFRESH"){
+
+      finalStatus =
+      "TP REFRESH";
+
+    }
 
     html += `
 
@@ -589,13 +613,13 @@ function showPO(po){
 
           <span class="
           status
-          ${finalStatus === 'FLAGGED'
-            ? 'flagged'
-            : finalStatus === 'CLEAN'
+          ${finalStatus === 'APPROVED'
             ? 'clean'
-            : finalStatus === 'AUTO-APPROVED'
-            ? 'approved'
-            : 'review'}">
+            : finalStatus === 'EDIT PO TP'
+            ? 'flagged'
+            : finalStatus === 'TP REFRESH'
+            ? 'refresh'
+            : 'approved'}">
 
             ${finalStatus}
 
@@ -619,11 +643,9 @@ function showPO(po){
 
             <button
               class="action-btn approve-btn"
-              onclick="approveSKU(this,'${r.SKU_ID}')">
+              onclick="approveSKU('${r.SKU_ID}')">
 
-              ${r.MANUAL_STATUS === "APPROVED"
-                ? "Approved"
-                : "Approve"}
+              Approve
 
             </button>
 
@@ -631,13 +653,13 @@ function showPO(po){
               class="action-btn flag-btn"
               onclick="flagSKU('${r.SKU_ID}')">
 
-              Flag
+              Edit PO TP
 
             </button>
 
             <button
               class="action-btn refresh-btn"
-              onclick="refreshTP()">
+              onclick="refreshSKU('${r.SKU_ID}')">
 
               TP Refresh
 
@@ -668,13 +690,7 @@ function showPO(po){
 
 }
 
-function approveSKU(btn,sku){
-
-  btn.innerText =
-  "Approved";
-
-  btn.style.background =
-  "#16a34a";
+function approveSKU(sku){
 
   FULL_DATA.forEach(r => {
 
@@ -693,15 +709,35 @@ function approveSKU(btn,sku){
 
 function flagSKU(sku){
 
-  alert(
-    "Flagged : " + sku
-  );
+  FULL_DATA.forEach(r => {
+
+    if(r.SKU_ID === sku){
+
+      r.MANUAL_STATUS =
+      "FLAGGED";
+
+    }
+
+  });
+
+  showPO(currentPO);
 
 }
 
-function refreshTP(){
+function refreshSKU(sku){
 
-  location.reload();
+  FULL_DATA.forEach(r => {
+
+    if(r.SKU_ID === sku){
+
+      r.MANUAL_STATUS =
+      "REFRESH";
+
+    }
+
+  });
+
+  showPO(currentPO);
 
 }
 
@@ -731,13 +767,24 @@ function exportPO(po){
     let finalStatus =
     status;
 
-    if(
-      r.MANUAL_STATUS ===
-      "APPROVED"
-    ){
+    if(r.MANUAL_STATUS === "APPROVED"){
 
       finalStatus =
-      "FLAGGED";
+      "APPROVED";
+
+    }
+
+    if(r.MANUAL_STATUS === "FLAGGED"){
+
+      finalStatus =
+      "EDIT PO TP";
+
+    }
+
+    if(r.MANUAL_STATUS === "REFRESH"){
+
+      finalStatus =
+      "TP REFRESH";
 
     }
 
