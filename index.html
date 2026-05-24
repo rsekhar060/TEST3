@@ -554,7 +554,7 @@ function showPO(po){
           <tr>
 
             <th>SKU_ID</th>
-            <th>FACILITY</th>
+            <th>SKU NAME</th>
             <th>PO TP</th>
             <th>UC TP</th>
             <th>DIFF</th>
@@ -676,7 +676,7 @@ function showPO(po){
 
         <td>${r.SKU_ID}</td>
 
-        <td>${r.FacilityName}</td>
+        <td>${r.SKU_Name || ""}</td>
 
         <td>
 
@@ -737,9 +737,7 @@ function showPO(po){
         </td>
 
         <td class="reason">
-
           ${reason}
-
         </td>
 
         <td>
@@ -894,7 +892,7 @@ function exportAllPOs(){
 function exportCSV(rows,fileName){
 
   let csv =
-  "PoNumber,SKU_ID,FacilityName,PO_PRICE,UC_PRICE,REFRESH_TP,STATUS,FINAL_STATUS,REASON\n";
+  "PoNumber,SKU_ID,SKU_Name,PO_PRICE,UC_PRICE,REFRESH_TP,STATUS,FINAL_STATUS,REASON\n";
 
   rows.forEach(r => {
 
@@ -990,7 +988,7 @@ function exportCSV(rows,fileName){
     }
 
     csv +=
-    `${r.PoNumber},${r.SKU_ID},${r.FacilityName},${poTP},${ucTP},${refreshTP},${status},${finalStatus},${reason}\n`;
+    `${r.PoNumber},${r.SKU_ID},${r.SKU_Name || ""},${poTP},${ucTP},${refreshTP},${status},${finalStatus},${reason}\n`;
 
   });
 
