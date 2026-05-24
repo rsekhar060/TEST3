@@ -263,6 +263,15 @@ td{
   color:white;
 }
 
+.po-input{
+  width:100px;
+  background:#0f172a;
+  border:1px solid #334155;
+  color:white;
+  padding:8px;
+  border-radius:8px;
+}
+
 </style>
 
 </head>
@@ -587,7 +596,21 @@ function showPO(po){
 
         <td>${r.FacilityName}</td>
 
-        <td>₹${r.PO_PRICE}</td>
+        <td>
+
+          <input
+            type="number"
+            class="po-input"
+            value="${r.PO_PRICE}"
+            step="0.01"
+            onchange="
+              updatePOTP(
+                '${r.SKU_ID}',
+                this.value
+              )
+            ">
+
+        </td>
 
         <td>₹${r.UC_PRICE}</td>
 
@@ -687,6 +710,26 @@ function showPO(po){
 
   document.getElementById("content")
   .innerHTML = html;
+
+}
+
+function updatePOTP(sku,newPrice){
+
+  FULL_DATA.forEach(r => {
+
+    if(r.SKU_ID === sku){
+
+      r.PO_PRICE =
+      Number(newPrice);
+
+      r.MANUAL_STATUS =
+      "FLAGGED";
+
+    }
+
+  });
+
+  showPO(currentPO);
 
 }
 
