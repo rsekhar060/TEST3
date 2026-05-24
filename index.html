@@ -117,6 +117,11 @@ body{
   font-size:36px;
 }
 
+.export-wrap{
+  display:flex;
+  gap:10px;
+}
+
 .export-btn{
   background:#111827;
   color:white;
@@ -299,9 +304,25 @@ td{
 
     <h1>Instamart TP Dashboard</h1>
 
-    <button class="export-btn" onclick="exportPO(currentPO)">
-      EXPORT PO
-    </button>
+    <div class="export-wrap">
+
+      <button
+        class="export-btn"
+        onclick="exportPO(currentPO)">
+
+        EXPORT SELECTED PO
+
+      </button>
+
+      <button
+        class="export-btn"
+        onclick="exportAllPOs()">
+
+        EXPORT ALL POs
+
+      </button>
+
+    </div>
 
   </div>
 
@@ -589,7 +610,7 @@ function showPO(po){
     if(r.MANUAL_STATUS === "FLAGGED"){
 
       finalStatus =
-      "EDIT PO TP";
+      "FLAG PLATFORM";
 
       refreshTP =
       poTP;
@@ -699,7 +720,7 @@ function showPO(po){
           status
           ${finalStatus === 'APPROVED'
             ? 'approved'
-            : finalStatus === 'EDIT PO TP'
+            : finalStatus === 'FLAG PLATFORM'
             ? 'flagged'
             : finalStatus === 'TP REFRESH'
             ? 'refresh'
@@ -737,7 +758,7 @@ function showPO(po){
               class="action-btn flag-btn"
               onclick="flagSKU('${r.SKU_ID}')">
 
-              Edit PO TP
+              Flag Platform
 
             </button>
 
@@ -857,6 +878,21 @@ function exportPO(po){
     r.PoNumber === po
   );
 
+  exportCSV(rows, `${po}.csv`);
+
+}
+
+function exportAllPOs(){
+
+  exportCSV(
+    FULL_DATA,
+    "ALL_POS.csv"
+  );
+
+}
+
+function exportCSV(rows,fileName){
+
   let csv =
   "PoNumber,SKU_ID,FacilityName,PO_PRICE,UC_PRICE,REFRESH_TP,STATUS,FINAL_STATUS,REASON\n";
 
@@ -893,7 +929,7 @@ function exportPO(po){
     if(r.MANUAL_STATUS === "FLAGGED"){
 
       finalStatus =
-      "EDIT PO TP";
+      "FLAG PLATFORM";
 
       refreshTP =
       poTP;
@@ -970,7 +1006,7 @@ function exportPO(po){
   URL.createObjectURL(blob);
 
   a.download =
-  `${po}.csv`;
+  fileName;
 
   a.click();
 
