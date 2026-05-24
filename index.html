@@ -569,12 +569,15 @@ function showPO(po){
     status;
 
     let refreshTP =
-    "";
+    r.PO_PRICE;
 
     if(r.MANUAL_STATUS === "APPROVED"){
 
       finalStatus =
       "APPROVED";
+
+      refreshTP =
+      r.PO_PRICE;
 
     }
 
@@ -582,6 +585,9 @@ function showPO(po){
 
       finalStatus =
       "EDIT PO TP";
+
+      refreshTP =
+      r.PO_PRICE;
 
     }
 
@@ -592,6 +598,13 @@ function showPO(po){
 
       refreshTP =
       r.UC_PRICE;
+
+    }
+
+    if(status === "AUTO-APPROVED"){
+
+      refreshTP =
+      r.PO_PRICE;
 
     }
 
@@ -658,11 +671,7 @@ function showPO(po){
         </td>
 
         <td>
-
-          ${refreshTP
-            ? '₹' + refreshTP
-            : ''}
-
+          ₹${refreshTP}
         </td>
 
         <td class="reason">
@@ -826,12 +835,15 @@ function exportPO(po){
     status;
 
     let refreshTP =
-    "";
+    r.PO_PRICE;
 
     if(r.MANUAL_STATUS === "APPROVED"){
 
       finalStatus =
       "APPROVED";
+
+      refreshTP =
+      r.PO_PRICE;
 
     }
 
@@ -839,6 +851,9 @@ function exportPO(po){
 
       finalStatus =
       "EDIT PO TP";
+
+      refreshTP =
+      r.PO_PRICE;
 
     }
 
@@ -849,6 +864,13 @@ function exportPO(po){
 
       refreshTP =
       r.UC_PRICE;
+
+    }
+
+    if(status === "AUTO-APPROVED"){
+
+      refreshTP =
+      r.PO_PRICE;
 
     }
 
