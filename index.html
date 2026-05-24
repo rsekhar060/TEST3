@@ -512,11 +512,23 @@ function renderSidebar(grouped){
 
     rows.forEach(r => {
 
-      const status =
+      let status =
       getStatus(
         r.PO_PRICE,
         r.UC_PRICE
       );
+
+      if(
+        r.MANUAL_STATUS === "FLAGGED" ||
+        r.MANUAL_STATUS === "REFRESH" ||
+        r.MANUAL_STATUS === "EDITED"
+      ){
+        status = "REVIEW";
+      }
+
+      if(r.MANUAL_STATUS === "APPROVED"){
+        status = "AUTO-APPROVED";
+      }
 
       if(status === "REVIEW"){
         dotClass = "orange";
@@ -569,11 +581,23 @@ function filterSidebar(type){
 
   FULL_DATA.forEach(r => {
 
-    const status =
+    let status =
     getStatus(
       r.PO_PRICE,
       r.UC_PRICE
     );
+
+    if(
+      r.MANUAL_STATUS === "FLAGGED" ||
+      r.MANUAL_STATUS === "REFRESH" ||
+      r.MANUAL_STATUS === "EDITED"
+    ){
+      status = "REVIEW";
+    }
+
+    if(r.MANUAL_STATUS === "APPROVED"){
+      status = "AUTO-APPROVED";
+    }
 
     let include = false;
 
@@ -613,11 +637,23 @@ function updateStats(data){
 
     pos.add(r.PoNumber);
 
-    const status =
+    let status =
     getStatus(
       r.PO_PRICE,
       r.UC_PRICE
     );
+
+    if(
+      r.MANUAL_STATUS === "FLAGGED" ||
+      r.MANUAL_STATUS === "REFRESH" ||
+      r.MANUAL_STATUS === "EDITED"
+    ){
+      status = "REVIEW";
+    }
+
+    if(r.MANUAL_STATUS === "APPROVED"){
+      status = "AUTO-APPROVED";
+    }
 
     if(status === "CLEAN"){
       clean++;
@@ -700,11 +736,23 @@ function showPO(po){
     const ucTP =
     Number(r.UC_PRICE);
 
-    const status =
+    let status =
     getStatus(
       poTP,
       ucTP
     );
+
+    if(
+      r.MANUAL_STATUS === "FLAGGED" ||
+      r.MANUAL_STATUS === "REFRESH" ||
+      r.MANUAL_STATUS === "EDITED"
+    ){
+      status = "REVIEW";
+    }
+
+    if(r.MANUAL_STATUS === "APPROVED"){
+      status = "AUTO-APPROVED";
+    }
 
     const diff =
     Math.abs(
@@ -718,31 +766,23 @@ function showPO(po){
     poTP;
 
     if(r.MANUAL_STATUS === "APPROVED"){
-
-      finalStatus =
-      "APPROVED";
-
+      finalStatus = "APPROVED";
     }
 
     if(r.MANUAL_STATUS === "FLAGGED"){
-
-      finalStatus =
-      "FLAG PLATFORM";
-
+      finalStatus = "FLAG PLATFORM";
     }
 
     if(r.MANUAL_STATUS === "REFRESH"){
-
-      finalStatus =
-      "TP REFRESH";
-
-      refreshTP =
-      ucTP;
-
+      finalStatus = "TP REFRESH";
+      refreshTP = ucTP;
     }
 
-    let reason =
-    "";
+    if(r.MANUAL_STATUS === "EDITED"){
+      finalStatus = "EDITED";
+    }
+
+    let reason = "";
 
     const actualDiff =
     poTP - ucTP;
@@ -817,9 +857,7 @@ function showPO(po){
             ? 'flagged'
             : finalStatus === 'TP REFRESH'
             ? 'refresh'
-            : status === 'REVIEW'
-            ? 'review'
-            : 'approved'}">
+            : 'review'}">
 
             ${finalStatus}
 
@@ -898,7 +936,7 @@ function updatePOTP(sku,newPrice){
       Number(newPrice);
 
       r.MANUAL_STATUS =
-      "";
+      "EDITED";
 
     }
 
@@ -921,7 +959,6 @@ function approveSKU(sku){
       r.MANUAL_STATUS =
       "APPROVED";
 
-      // AUTO MOVE REVIEW TO APPROVED
       r.PO_PRICE =
       Number(r.UC_PRICE);
 
@@ -950,6 +987,10 @@ function flagSKU(sku){
 
   });
 
+  updateStats(FULL_DATA);
+
+  buildSidebar(FULL_DATA);
+
   showPO(currentPO);
 
 }
@@ -966,6 +1007,10 @@ function refreshSKU(sku){
     }
 
   });
+
+  updateStats(FULL_DATA);
+
+  buildSidebar(FULL_DATA);
 
   showPO(currentPO);
 
@@ -1009,11 +1054,23 @@ function exportCSV(rows,fileName){
     const ucTP =
     Number(r.UC_PRICE);
 
-    const status =
+    let status =
     getStatus(
       poTP,
       ucTP
     );
+
+    if(
+      r.MANUAL_STATUS === "FLAGGED" ||
+      r.MANUAL_STATUS === "REFRESH" ||
+      r.MANUAL_STATUS === "EDITED"
+    ){
+      status = "REVIEW";
+    }
+
+    if(r.MANUAL_STATUS === "APPROVED"){
+      status = "AUTO-APPROVED";
+    }
 
     let finalStatus =
     status;
@@ -1022,31 +1079,23 @@ function exportCSV(rows,fileName){
     poTP;
 
     if(r.MANUAL_STATUS === "APPROVED"){
-
-      finalStatus =
-      "APPROVED";
-
+      finalStatus = "APPROVED";
     }
 
     if(r.MANUAL_STATUS === "FLAGGED"){
-
-      finalStatus =
-      "FLAG PLATFORM";
-
+      finalStatus = "FLAG PLATFORM";
     }
 
     if(r.MANUAL_STATUS === "REFRESH"){
-
-      finalStatus =
-      "TP REFRESH";
-
-      refreshTP =
-      ucTP;
-
+      finalStatus = "TP REFRESH";
+      refreshTP = ucTP;
     }
 
-    let reason =
-    "";
+    if(r.MANUAL_STATUS === "EDITED"){
+      finalStatus = "EDITED";
+    }
+
+    let reason = "";
 
     const actualDiff =
     poTP - ucTP;
