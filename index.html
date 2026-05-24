@@ -702,6 +702,285 @@ function updateStats(data){
 
 }
 
+function showPO(po){
+
+  currentPO = po;
+
+  const rows =
+  FULL_DATA.filter(r =>
+    r.PoNumber === po
+  );
+
+  let html = `
+
+    <div class="table-card">
+
+      <div class="table-header">
+        ${po}
+      </div>
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>SKU_ID</th>
+            <th>SKU NAME</th>
+            <th>PO TP</th>
+            <th>UC TP</th>
+            <th>DIFF</th>
+            <th>STATUS</th>
+            <th>FINAL STATUS</th>
+            <th>REFRESH TP</th>
+            <th>REASON</th>
+            <th>ACTIONS</th>
+
+          </tr>
+
+        </thead>
+
+        <tbody>
+
+  `;
+
+  rows.forEach(r => {
+
+    const poTP = Number(r.PO_PRICE);
+    const ucTP = Number(r.UC_PRICE);
+
+    const status =
+    getStatus(poTP, ucTP);
+
+    const diff =
+    Math.abs(poTP - ucTP).toFixed(2);
+
+    let finalStatus = status;
+    let refreshTP = poTP;
+
+    if(r.MANUAL_STATUS === "APPROVED"){
+      finalStatus = "APPROVED";
+    }
+
+    if(r.MANUAL_STATUS === "FLAGGED"){
+      finalStatus = "FLAG PLATFORM";
+    }
+
+    if(r.MANUAL_STATUS === "REFRESH"){
+      finalStatus = "TP REFRESH";
+      refreshTP = ucTP;
+    }
+
+    html += `
+
+      <tr>
+
+        <td>${r.SKU_ID}</td>
+
+        <td>${getSKUName(r)}</td>
+
+        <td>
+
+          <input
+            type="number"
+            class="po-input"
+            value="${poTP}"
+            onchange="
+              updatePOTP(
+                '${r.SKU_ID}',
+                this.value
+              )
+            ">
+
+        </td>
+
+        <td>₹${ucTP}</td>
+
+        <td>₹${diff}</td>
+
+        <td>${status}</td>
+
+        <td>${finalStatus}</td>
+
+        <td>₹${refreshTP}</td>
+
+        <td>-</td>
+
+        <td>
+
+          <div class="action-buttons">
+
+            <button
+              class="action-btn approve-btn"
+              onclick="approveSKU('${r.SKU_ID}')">
+
+              Approve
+
+            </button>
+
+            <button
+              class="action-btn flag-btn"
+              onclick="flagSKU('${r.SKU_ID}')">
+
+              Flag
+
+            </button>
+
+            <button
+              class="action-btn refresh-btn"
+              onclick="refreshSKU('${r.SKU_ID}')">
+
+              Refresh
+
+            </button>
+
+          </div>
+
+        </td>
+
+      </tr>
+
+    `;
+
+  });
+
+  html += `
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  document.getElementById("content")
+  .innerHTML = html;
+
+}
+
+function updatePOTP(sku,newPrice){
+
+  FULL_DATA.forEach(r => {
+
+    if(r.SKU_ID === sku){
+
+      r.PO_PRICE = Number(newPrice);
+
+    }
+
+  });
+
+  showPO(currentPO);
+
+}
+
+function approveSKU(sku){
+
+  FULL_DATA.forEach(r => {
+
+    if(r.SKU_ID === sku){
+
+      r.MANUAL_STATUS = "APPROVED";
+
+    }
+
+  });
+
+  showPO(currentPO);
+
+  updateStats(FULL_DATA);
+
+}
+
+function flagSKU(sku){
+
+  FULL_DATA.forEach(r => {
+
+    if(r.SKU_ID === sku){
+
+      r.MANUAL_STATUS = "FLAGGED";
+
+    }
+
+  });
+
+  showPO(currentPO);
+
+  updateStats(FULL_DATA);
+
+}
+
+function refreshSKU(sku){
+
+  FULL_DATA.forEach(r => {
+
+    if(r.SKU_ID === sku){
+
+      r.MANUAL_STATUS = "REFRESH";
+
+    }
+
+  });
+
+  showPO(currentPO);
+
+  updateStats(FULL_DATA);
+
+}
+
+function exportPO(po){
+
+  if(!po){
+    alert("Select PO First");
+    return;
+  }
+
+  const rows =
+  FULL_DATA.filter(r =>
+    r.PoNumber === po
+  );
+
+  exportCSV(rows, `${po}.csv`);
+
+}
+
+function exportAllPOs(){
+
+  exportCSV(FULL_DATA,"ALL_POS.csv");
+
+}
+
+function exportCSV(rows,fileName){
+
+  let csv =
+  `"PoNumber","SKU_ID","SKU_Name","PO_PRICE","UC_PRICE"\n`;
+
+  rows.forEach(r => {
+
+    csv +=
+`"${r.PoNumber}","${r.SKU_ID}","${getSKUName(r)}","${r.PO_PRICE}","${r.UC_PRICE}"\n`;
+
+  });
+
+  const blob =
+  new Blob([csv], {
+    type:'text/csv;charset=utf-8;'
+  });
+
+  const a =
+  document.createElement('a');
+
+  a.href =
+  URL.createObjectURL(blob);
+
+  a.download =
+  fileName;
+
+  document.body.appendChild(a);
+
+  a.click();
+
+  document.body.removeChild(a);
+
+}
+
 </script>
 
 </body>
