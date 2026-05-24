@@ -174,7 +174,7 @@ body{
   background:#111827;
   border:1px solid #1f2937;
   border-radius:18px;
-  overflow:auto;
+  overflow:hidden;
   margin-bottom:30px;
 }
 
@@ -203,7 +203,6 @@ td{
   padding:16px;
   border-top:1px solid #1f2937;
   font-size:12px;
-  line-height:1.4;
 }
 
 .status{
@@ -315,13 +314,17 @@ td{
       <button
         class="export-btn"
         onclick="exportPO(currentPO)">
+
         EXPORT SELECTED PO
+
       </button>
 
       <button
         class="export-btn"
         onclick="exportAllPOs()">
+
         EXPORT ALL POs
+
       </button>
 
     </div>
@@ -369,41 +372,27 @@ const API_URL =
 let FULL_DATA = [];
 let currentPO = "";
 
-async function loadData(){
+fetch(API_URL)
 
-  try{
+.then(res => res.json())
 
-    const response =
-    await fetch(API_URL);
+.then(data => {
 
-    const data =
-    await response.json();
+  FULL_DATA = data;
 
-    FULL_DATA = data;
+  buildSidebar(data);
 
-    buildSidebar(FULL_DATA);
+  updateStats(data);
 
-    updateStats(FULL_DATA);
+})
 
-    if(FULL_DATA.length > 0){
+.catch(err => {
 
-      showPO(FULL_DATA[0].PoNumber);
+  console.log(err);
 
-    }
+  alert("Apps Script Error");
 
-  }
-
-  catch(error){
-
-    console.log(error);
-
-    alert("Data Loading Failed");
-
-  }
-
-}
-
-loadData();
+});
 
 function getStatus(po,uc){
 
