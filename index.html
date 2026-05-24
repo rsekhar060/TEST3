@@ -28,36 +28,36 @@ body{
 }
 
 .sidebar{
-  width:260px;
+  width:220px;
   background:#0d111c;
   border-right:1px solid #1e2535;
   overflow-y:auto;
 }
 
 .logo{
-  padding:16px;
-  font-size:15px;
-  font-weight:700;
+  padding:14px;
+  font-size:14px;
+  font-weight:600;
   border-bottom:1px solid #1e2535;
 }
 
 .sidebar-title{
-  padding:12px;
+  padding:10px;
   color:#94a3b8;
-  font-size:10px;
+  font-size:8px;
   letter-spacing:2px;
 }
 
 .po-list{
-  padding:0 10px 15px;
+  padding:0 8px 15px;
 }
 
 .po-item{
   background:#111827;
   border:1px solid #1f2937;
-  border-radius:12px;
-  padding:12px;
-  margin-bottom:8px;
+  border-radius:10px;
+  padding:10px;
+  margin-bottom:6px;
   transition:0.3s;
   cursor:pointer;
 }
@@ -73,13 +73,13 @@ body{
 }
 
 .po-number{
-  font-size:13px;
+  font-size:12px;
   font-weight:600;
 }
 
 .dot{
-  width:9px;
-  height:9px;
+  width:8px;
+  height:8px;
   border-radius:50%;
 }
 
@@ -98,7 +98,6 @@ body{
 .po-lines{
   margin-top:8px;
   color:#94a3b8;
-  font-size:12px;
 }
 
 .main{
@@ -111,40 +110,39 @@ body{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  margin-bottom:22px;
+  margin-bottom:20px;
 }
 
 .header h1{
-  font-size:15px;
+  font-size:14px;
 }
 
 .export-wrap{
   display:flex;
-  gap:10px;
+  gap:8px;
 }
 
 .export-btn{
   background:#111827;
   color:white;
   border:1px solid #1f2937;
-  padding:13px 20px;
-  border-radius:14px;
+  padding:12px 18px;
+  border-radius:12px;
   cursor:pointer;
-  font-size:13px;
 }
 
 .stats{
   display:grid;
   grid-template-columns:repeat(5,1fr);
   gap:18px;
-  margin-bottom:28px;
+  margin-bottom:30px;
 }
 
 .stat-card{
   background:#111827;
   border:1px solid #1f2937;
-  border-radius:16px;
-  padding:22px;
+  border-radius:15px;
+  padding:20px;
   cursor:pointer;
   transition:0.3s;
 }
@@ -155,12 +153,12 @@ body{
 
 .stat-title{
   color:#94a3b8;
-  font-size:12px;
-  margin-bottom:12px;
+  font-size:11px;
+  margin-bottom:10px;
 }
 
 .stat-value{
-  font-size:38px;
+  font-size:28px;
   font-weight:700;
 }
 
@@ -179,14 +177,15 @@ body{
 .table-card{
   background:#111827;
   border:1px solid #1f2937;
-  border-radius:20px;
+  border-radius:18px;
   overflow:hidden;
+  margin-bottom:30px;
 }
 
 .table-header{
-  padding:18px;
+  padding:14px;
   border-bottom:1px solid #1f2937;
-  font-size:20px;
+  font-size:18px;
   font-weight:700;
 }
 
@@ -199,19 +198,18 @@ th{
   background:#0f172a;
   color:#94a3b8;
   text-align:left;
-  padding:15px;
-  font-size:11px;
+  padding:14px;
+  font-size:10px;
   letter-spacing:1px;
 }
 
 td{
-  padding:18px 15px;
+  padding:16px;
   border-top:1px solid #1f2937;
-  vertical-align:top;
 }
 
 .status{
-  padding:7px 14px;
+  padding:6px 12px;
   border-radius:8px;
   font-size:10px;
   font-weight:700;
@@ -255,11 +253,11 @@ td{
 
 .action-btn{
   border:none;
-  padding:9px 14px;
-  border-radius:9px;
+  padding:8px 12px;
+  border-radius:8px;
   cursor:pointer;
-  font-size:11px;
-  font-weight:700;
+  font-size:10px;
+  font-weight:600;
 }
 
 .approve-btn{
@@ -278,13 +276,12 @@ td{
 }
 
 .po-input{
-  width:110px;
+  width:100px;
   background:#0f172a;
   border:1px solid #334155;
   color:white;
-  padding:10px;
-  border-radius:10px;
-  font-size:15px;
+  padding:8px;
+  border-radius:8px;
 }
 
 </style>
@@ -447,13 +444,9 @@ fetch(API_URL)
 
   FULL_DATA = data;
 
-  buildSidebar(FULL_DATA);
+  buildSidebar(data);
 
-  updateStats(FULL_DATA);
-
-  if(data.length > 0){
-    showPO(data[0].PoNumber);
-  }
+  updateStats(data);
 
 })
 
@@ -512,23 +505,11 @@ function renderSidebar(grouped){
 
     rows.forEach(r => {
 
-      let status =
+      const status =
       getStatus(
         r.PO_PRICE,
         r.UC_PRICE
       );
-
-      if(
-        r.MANUAL_STATUS === "FLAGGED" ||
-        r.MANUAL_STATUS === "REFRESH" ||
-        r.MANUAL_STATUS === "EDITED"
-      ){
-        status = "REVIEW";
-      }
-
-      if(r.MANUAL_STATUS === "APPROVED"){
-        status = "AUTO-APPROVED";
-      }
 
       if(status === "REVIEW"){
         dotClass = "orange";
@@ -581,23 +562,11 @@ function filterSidebar(type){
 
   FULL_DATA.forEach(r => {
 
-    let status =
+    const status =
     getStatus(
       r.PO_PRICE,
       r.UC_PRICE
     );
-
-    if(
-      r.MANUAL_STATUS === "FLAGGED" ||
-      r.MANUAL_STATUS === "REFRESH" ||
-      r.MANUAL_STATUS === "EDITED"
-    ){
-      status = "REVIEW";
-    }
-
-    if(r.MANUAL_STATUS === "APPROVED"){
-      status = "AUTO-APPROVED";
-    }
 
     let include = false;
 
@@ -637,23 +606,11 @@ function updateStats(data){
 
     pos.add(r.PoNumber);
 
-    let status =
+    const status =
     getStatus(
       r.PO_PRICE,
       r.UC_PRICE
     );
-
-    if(
-      r.MANUAL_STATUS === "FLAGGED" ||
-      r.MANUAL_STATUS === "REFRESH" ||
-      r.MANUAL_STATUS === "EDITED"
-    ){
-      status = "REVIEW";
-    }
-
-    if(r.MANUAL_STATUS === "APPROVED"){
-      status = "AUTO-APPROVED";
-    }
 
     if(status === "CLEAN"){
       clean++;
@@ -736,23 +693,11 @@ function showPO(po){
     const ucTP =
     Number(r.UC_PRICE);
 
-    let status =
+    const status =
     getStatus(
       poTP,
       ucTP
     );
-
-    if(
-      r.MANUAL_STATUS === "FLAGGED" ||
-      r.MANUAL_STATUS === "REFRESH" ||
-      r.MANUAL_STATUS === "EDITED"
-    ){
-      status = "REVIEW";
-    }
-
-    if(r.MANUAL_STATUS === "APPROVED"){
-      status = "AUTO-APPROVED";
-    }
 
     const diff =
     Math.abs(
@@ -766,23 +711,37 @@ function showPO(po){
     poTP;
 
     if(r.MANUAL_STATUS === "APPROVED"){
-      finalStatus = "APPROVED";
+
+      finalStatus =
+      "APPROVED";
+
+      refreshTP =
+      poTP;
+
     }
 
     if(r.MANUAL_STATUS === "FLAGGED"){
-      finalStatus = "FLAG PLATFORM";
+
+      finalStatus =
+      "FLAG PLATFORM";
+
+      refreshTP =
+      poTP;
+
     }
 
     if(r.MANUAL_STATUS === "REFRESH"){
-      finalStatus = "TP REFRESH";
-      refreshTP = ucTP;
+
+      finalStatus =
+      "TP REFRESH";
+
+      refreshTP =
+      ucTP;
+
     }
 
-    if(r.MANUAL_STATUS === "EDITED"){
-      finalStatus = "EDITED";
-    }
-
-    let reason = "";
+    let reason =
+    "";
 
     const actualDiff =
     poTP - ucTP;
@@ -857,7 +816,9 @@ function showPO(po){
             ? 'flagged'
             : finalStatus === 'TP REFRESH'
             ? 'refresh'
-            : 'review'}">
+            : status === 'REVIEW'
+            ? 'review'
+            : 'approved'}">
 
             ${finalStatus}
 
@@ -936,15 +897,11 @@ function updatePOTP(sku,newPrice){
       Number(newPrice);
 
       r.MANUAL_STATUS =
-      "EDITED";
+      "FLAGGED";
 
     }
 
   });
-
-  updateStats(FULL_DATA);
-
-  buildSidebar(FULL_DATA);
 
   showPO(currentPO);
 
@@ -959,16 +916,9 @@ function approveSKU(sku){
       r.MANUAL_STATUS =
       "APPROVED";
 
-      r.PO_PRICE =
-      Number(r.UC_PRICE);
-
     }
 
   });
-
-  updateStats(FULL_DATA);
-
-  buildSidebar(FULL_DATA);
 
   showPO(currentPO);
 
@@ -987,10 +937,6 @@ function flagSKU(sku){
 
   });
 
-  updateStats(FULL_DATA);
-
-  buildSidebar(FULL_DATA);
-
   showPO(currentPO);
 
 }
@@ -1007,10 +953,6 @@ function refreshSKU(sku){
     }
 
   });
-
-  updateStats(FULL_DATA);
-
-  buildSidebar(FULL_DATA);
 
   showPO(currentPO);
 
@@ -1054,23 +996,11 @@ function exportCSV(rows,fileName){
     const ucTP =
     Number(r.UC_PRICE);
 
-    let status =
+    const status =
     getStatus(
       poTP,
       ucTP
     );
-
-    if(
-      r.MANUAL_STATUS === "FLAGGED" ||
-      r.MANUAL_STATUS === "REFRESH" ||
-      r.MANUAL_STATUS === "EDITED"
-    ){
-      status = "REVIEW";
-    }
-
-    if(r.MANUAL_STATUS === "APPROVED"){
-      status = "AUTO-APPROVED";
-    }
 
     let finalStatus =
     status;
@@ -1079,23 +1009,31 @@ function exportCSV(rows,fileName){
     poTP;
 
     if(r.MANUAL_STATUS === "APPROVED"){
-      finalStatus = "APPROVED";
+
+      finalStatus =
+      "APPROVED";
+
     }
 
     if(r.MANUAL_STATUS === "FLAGGED"){
-      finalStatus = "FLAG PLATFORM";
+
+      finalStatus =
+      "FLAG PLATFORM";
+
     }
 
     if(r.MANUAL_STATUS === "REFRESH"){
-      finalStatus = "TP REFRESH";
-      refreshTP = ucTP;
+
+      finalStatus =
+      "TP REFRESH";
+
+      refreshTP =
+      ucTP;
+
     }
 
-    if(r.MANUAL_STATUS === "EDITED"){
-      finalStatus = "EDITED";
-    }
-
-    let reason = "";
+    let reason =
+    "";
 
     const actualDiff =
     poTP - ucTP;
